@@ -3,3 +3,4 @@ pandas==1.5.3
 numpy==1.25.1
 xlrd==2.0.1
 python-dotenv==1.0.0
+Matplotlib==3.7.2
