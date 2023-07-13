@@ -1,1 +1,19 @@
 .env
+dataset/
+notebooks_guia/
+
+# compiles in python
+*.bundle.*
+lib/
+node_modules/
+*.egg-info/
+# jupyter notebooks checkpoints
+.ipynb_checkpoints
+*.tsbuildinfo
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
