@@ -1,15 +1,12 @@
+from sklearn.model_selection import train_test_split
 import os
 from typing import Tuple
 import os
 import boto3
 # from pathlib import Path
 from dotenv import load_dotenv
-
 import pandas as pd
-
 from src import config
-
-
 
 def get_datasets() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
@@ -83,9 +80,10 @@ def get_feature_target(
     """
     X_train, y_train, X_test, y_test = None, None, None, None
 
-    X_train = app_train.drop(columns=['TARGET_LABEL_BAD=1'])
-    y_train = app_train['TARGET_LABEL_BAD=1']
-    X_test = app_test.drop(columns='TARGET_LABEL_BAD=1')
-    y_test = app_test['TARGET_LABEL_BAD=1']
+    X = app_train.drop(columns=['TARGET_LABEL_BAD=1'])
+    y = app_train['TARGET_LABEL_BAD=1']
+    
+    X_train, X_val, y_train, y_val = train_test_split(X, y,random_state=0)
+    X_test = app_test
 
-    return X_train, y_train, X_test, y_test
+    return X_train, y_train, X_val, y_val, X_test
