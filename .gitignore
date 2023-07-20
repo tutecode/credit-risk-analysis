@@ -1,14 +1,5 @@
 .env
 /dataset
-__pycache__/
-*.py[cod]
-*$py.class
 
-# compiles in python
-*.bundle.*
-lib/
-node_modules/
-*.egg-info/
-# jupyter notebooks checkpoints
-.ipynb_checkpoints
-*.tsbuildinfo
+#  carpeta donde tengo emperimentos (Yessid)
+/experimentos

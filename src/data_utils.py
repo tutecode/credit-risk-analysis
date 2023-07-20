@@ -35,12 +35,16 @@ def get_datasets() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     
    
     # Download application_train.csv
-    if not os.path.exists(config.DATASET_TRAIN):
-        s3.download_file(config.BUCKET, config.DATASET_TRAIN_URL, f'{config.DATASET_ROOT_PATH}/train_data.csv')
+
+    if not os.path.exists(config.DATASET_CREDIT):
+        s3.download_file(config.BUCKET, config.DATASET_CREDIT_URL, f'{config.DATASET_ROOT_PATH}/credit_data.csv')
     
-    # Download application_test.csv
-    if not os.path.exists(config.DATASET_TEST):
-        s3.download_file(config.BUCKET, config.DATASET_TEST_URL, f'{config.DATASET_ROOT_PATH}/test_data.csv')
+    # if not os.path.exists(config.DATASET_TRAIN):
+    #     s3.download_file(config.BUCKET, config.DATASET_TRAIN_URL, f'{config.DATASET_ROOT_PATH}/train_data.csv')
+    
+    # # Download application_test.csv
+    # if not os.path.exists(config.DATASET_TEST):
+    #     s3.download_file(config.BUCKET, config.DATASET_TEST_URL, f'{config.DATASET_ROOT_PATH}/test_data.csv')
 
     # Download description.xls
     if not os.path.exists(config.DATASET_DESCRIPTION):
@@ -48,15 +52,17 @@ def get_datasets() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
 
     # create datasets
     df_excel = pd.read_excel(config.DATASET_DESCRIPTION, index_col=0, engine="xlrd")
-    app_train = pd.read_csv(config.DATASET_TRAIN, delimiter='\t', encoding='latin1', header=None)
-    app_test = pd.read_csv(config.DATASET_TEST, delimiter='\t', encoding='latin1', header=None)
+    credit_data = pd.read_csv(config.DATASET_CREDIT, delimiter='\t', encoding='latin1', header=None)
+    # app_test = pd.read_csv(config.DATASET_TEST, delimiter='\t', encoding='latin1', header=None)
 
-    app_train.columns = df_excel['Var_Title'].to_list()
-    app_test.columns = df_excel['Var_Title'].to_list()[:-1]
+    credit_data.columns = df_excel['Var_Title'].to_list()
+    # app_test.columns = df_excel['Var_Title'].to_list()[:-1]
 
-    return (app_train, app_test, df_excel)
+    # return (app_train, app_test, df_excel)
+    return (credit_data, df_excel)
 
 
+# NOT USED YET
 def get_feature_target(
     app_train: pd.DataFrame, app_test: pd.DataFrame
 ) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:

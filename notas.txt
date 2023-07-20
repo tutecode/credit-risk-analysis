@@ -1,0 +1,19 @@
+Decidi solo descargar el dataset llamado credit_data, ya que es el unico que esta completo. 
+El resto quedan en stand by para su uso posterior, si es necesario.
+
+Para la columna objetivo, tener en cuenta la distribucion, tenemos aprox 70% aprobado y 30% no aprobado
+Pasar el parametro class_weight a fit (en keras), indicando un numero que tanta importancia tiene una clase con la otra.
+Pasar el parametro comppute_class_wight (sklearn), devuelve los pesos de clasificacion binario.
+En la clase colocar los valores de 0=1, y 1=2.83, para equilibrar la balanza.
+
+Se van a crear 3 notebooks para mantener un orden:
+1. El notebook de limpieza EDA
+1.1. Grabar el dataframe resultante como un archivo csv.
+2. El notebook que incluye el proceso de transformar a onehot, y division a train test split (incluyendo val).
+2.1. Sera necesario crear estos csv files del train, test, val???
+3. El notebook del modelo (sklearn, regression, neuronal networks, pytorch, etc..)
+3.1. No olvidar almacenar el modelo como un archivo .h5 (confirmar extension del modelo)
+
+Se creo el archivo info_eda.py que contiene solo las funciones de informacion.
+Se creo el archivo clean_eda.py que contiene solo las funciones de limpieza.
+Se crel el archivo plot_eda.py que contiene solo las funciones de graficas.
