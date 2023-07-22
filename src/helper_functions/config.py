@@ -4,7 +4,7 @@ from pathlib import Path
 BUCKET = 'anyoneai-datasets'
 PREFIX = "credit-data-2010"
 
-DATASET_ROOT_PATH = str(Path(__file__).parent.parent / "dataset")
+DATASET_ROOT_PATH = "../../dataset"
 os.makedirs(DATASET_ROOT_PATH, exist_ok=True)
 
 DATASET_TRAIN = str(Path(DATASET_ROOT_PATH) / "train_data.csv")
