@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-from tabulate import tabulate
+import tabulate
 
 
 def compute_stats_count(train, field, counting=False):
@@ -162,48 +162,3 @@ def display_missing_values(data_frame):
 
     print(tabulate(missing_data, headers="keys", tablefmt="pretty"))
 
-
-
-# ANALYZIN NUMERICAL COLUMNS
-
-# functions to treats outliers
-def trunc(valor, liminf, limsup):
-    if valor < liminf:
-        return liminf
-    if valor > limsup:
-        return limsup
-    if valor > liminf and valor < limsup:
-        return valor
-
-
-def compute_limits(df, field):
-    q1 = np.percentile(df[field], 25)
-    q3 = np.percentile(df[field], 75)
-    iqr = q3 - q1
-    limsup = q3 + 1.5 * iqr
-    liminf = q1 - 1.5 * iqr
-    return liminf, limsup
-
-
-def plot_outliers(df, field):
-    fig, axs = plt.subplots(1, 2, figsize=(10, 2))
-    sns.boxplot(x=df[field], ax=axs[0])
-    sns.boxplot(x=df["new" + field], ax=axs[1])
-
-
-def proc_outliers(df, field):
-    # impute nans with mean value of column
-    df[field].replace({np.nan: df[field].mean()}, inplace=True)
-
-    # compute quantiles
-    liminf, limsup = compute_limits(df, field)
-
-    # apply truncated function
-    df["new" + field] = df[field].apply(lambda val: trunc(val, liminf, limsup))
-
-    # plot before and after of correct outliers
-    plot_outliers(df, field)
-
-    # update dataframe
-    df[field] = df["new" + field]
-    df.drop(["new" + field], axis=1, inplace=True)
