@@ -7,6 +7,8 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectPercentile, chi2
 
+# import sys
+# sys.path.append('..')
 import os
 from typing import Tuple
 import os
@@ -14,7 +16,7 @@ import boto3
 # from pathlib import Path
 from dotenv import load_dotenv
 import pandas as pd
-from src import config
+from helper_functions import config
 import numpy as np
 
 def get_datasets() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
