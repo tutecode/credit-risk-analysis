@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import tabulate
+from tabulate import tabulate
 
 
 def compute_stats_count(train, field, counting=False):
@@ -156,9 +156,25 @@ def display_missing_values(data_frame):
     """
     missing_counts = data_frame.isna().sum()
     missing_counts = missing_counts[missing_counts > 0]
+    missing_counts = missing_counts.sort_values(ascending=False)
+
 
     missing_data = pd.DataFrame(missing_counts, columns=["Missing Count"])
     missing_data.index.name = "Column"
 
     print(tabulate(missing_data, headers="keys", tablefmt="pretty"))
 
+def display_missing_percentage(data_frame):
+    """
+    Displays the columns with missing values and their corresponding percentage of missing values.
+    Args:
+        data_frame (pd.DataFrame): The DataFrame to analyze.
+    """
+    missing_percentage = round(data_frame.isnull().mean() * 100, 2)
+    missing_percentage = missing_percentage[missing_percentage > 0]
+    missing_percentage = missing_percentage.sort_values(ascending=False)
+
+    missing_data = pd.DataFrame(missing_percentage, columns=["Missing Percentage"])
+    missing_data.index.name = "Column"
+
+    print(tabulate(missing_data, headers="keys", tablefmt="pretty"))
