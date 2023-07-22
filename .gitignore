@@ -1,4 +1,5 @@
 .env
+.wenv
 dataset/
 notebooks_guia/
 
