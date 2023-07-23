@@ -11,7 +11,7 @@ from sklearn.preprocessing import label_binarize
 def get_performance(
     predictions: Union[List, np.ndarray],
     y_test: Union[List, np.ndarray],
-    labels: Optional[Union[List, np.ndarray]] = ['N', 'Y'],
+    labels: Optional[Union[List, np.ndarray]] = [0, 1],
 ) -> Tuple[float, float, float, float]:
     """
     Get model performance using different metrics.
@@ -35,11 +35,11 @@ def get_performance(
     # Use sklearn.metrics.accuracy_score
     accuracy = metrics.accuracy_score(y_test, predictions)
     # Use sklearn.metrics.precision_score
-    precision = metrics.precision_score(y_test, predictions,pos_label="N")
+    precision = metrics.precision_score(y_test, predictions,pos_label=0)
     # Use sklearn.metrics.recall_score
-    recall = metrics.recall_score(y_test, predictions,pos_label="N")
+    recall = metrics.recall_score(y_test, predictions,pos_label=0)
     # Use sklearn.metrics.f1_score
-    f1_score = metrics.f1_score(y_test, predictions,pos_label="N")
+    f1_score = metrics.f1_score(y_test, predictions,pos_label=0)
     # Use sklearn.metrics.classification_report
     report = metrics.classification_report(y_test, predictions, labels=labels)
 

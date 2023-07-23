@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-import tabulate
-
+from tabulate import tabulate
 
 def compute_stats_count(train, field, counting=False):
     count, index, perc = [], [], []
