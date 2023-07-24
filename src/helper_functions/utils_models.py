@@ -1,4 +1,4 @@
-from helper_functions import evaluation
+from helper_functions import utils_metrics
 
 def model_fit_predict(classifier,feature_target):
     # logistic regression
