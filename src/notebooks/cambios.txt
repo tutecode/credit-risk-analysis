@@ -1,0 +1,21 @@
+Se elimino toda informacion del dataset test.
+La informacion de 'QUANT_ADDITIONAL_CARDS', no tiene grafica porque es un solo dato.
+La informacion de 'POSTAL_ADDRESS_TYPE', eliminada la info en el notebook, por disparidad de info.
+La informacion de 'EDUCATION_LEVEL', eliminada la info en el notebook.
+'NACIONALITY', eliminada, pero aparece en model_v0
+La informacion de 'RESIDENCE_TYPE', no estoy seguro si eliminar la info en el notebook.
+La informacion de 'MONTHS_IN_RESIDENCE', tenia un sesgo en la condicion de menor a 1, deberia ser menor a 12??
+La informacion de 'FLAG_EMAIL', eliminada la info en el notebook.
+La informacion de 'MONTHS_IN_JOB', eliminada la info en el notebook.
+La informacion de 'PROFESSION_CODE', eliminada la info en el notebook, muchos valores diferentes y nulos.
+La informacion de 'OCCUPATION_TYPE', eliminada la info en el notebook.
+La informacion de 'MATE_PROFESSION_CODE', eliminada la info en el notebook, demasiados valores nulos.
+La informacion de 'MATE_EDUCATION_LEVEL', eliminada la info en el notebook, demasiados valores nulos.
+La informacion de 'FLAG_HOME_ADDRESS_DOCUMENT', solo tiene un valor.
+La informacion de 'FLAG_RG', eliminada la info en el notebook.
+La informacion de 'FLAG_CPF', eliminada la info en el notebook.
+La informacion de 'PRODUCT', eliminada la info en el notebook.
+'APPLICATION_SUBMISSION_TYPE', preguntar por la tercera categoria, que sucede si se unen 2 categorias?
+'AGE', no estoy seguro porque fue removida.
+'RESIDENTIAL_STATE', preguntar por mas informacion, la funcion del 0.002 no hace ningun cambio.
+'PERSONAL_INCOME_LEVEL', It will be cast to (dollars$)??? HOW???

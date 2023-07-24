@@ -3,6 +3,10 @@ import pandas as pd
 import seaborn as sns
 from tabulate import tabulate
 
+# Setting the style
+sns.set_theme(style="ticks", palette="pastel")
+sns.set(font_scale=0.8)
+
 def compute_stats_count(train, field, counting=False):
     count, index, perc = [], [], []
     if counting:
@@ -161,3 +165,137 @@ def display_missing_values(data_frame):
 
     print(tabulate(missing_data, headers="keys", tablefmt="pretty"))
 
+
+def plot_income_by_other_column(data_frame, income_colname, other_colname, top_n=30):
+    """
+    Plots the income column grouped by another column in the DataFrame.
+    Args:
+        data_frame (pd.DataFrame): The DataFrame to analyze.
+        income_colname (str): Name of the income column.
+        other_colname (str): Name of the other column to group by.
+        top_n (int): Number of top rows to include in the plot (default is 30).
+    """
+    df_order_by_income = data_frame.sort_values(
+        by=[income_colname], ascending=False, ignore_index=True
+    )
+    df_income_plot = df_order_by_income.loc[:top_n, [income_colname, other_colname]]
+
+    plt.figure(figsize=(15, 4))
+    plt.title(income_colname + " Grouped By " + other_colname)
+    sns.barplot(x=df_income_plot[other_colname], y=df_income_plot[income_colname])
+    plt.tight_layout()
+    plt.show()
+
+
+# function to plot distribution of numerical feature
+def plotting_distribution(col_name, df, target_col):
+    fig, axes = plt.subplots(1, 2, figsize=(8, 3))
+    fig.suptitle("Distribution of " + col_name)
+    fig.align_labels()
+
+    if df[col_name].var() != 0:
+        sns.kdeplot(ax=axes[0], data=df, x=col_name, hue=target_col, fill=True)
+    else:
+        sns.histplot(ax=axes[0], data=df, x=col_name, hue=target_col, fill=True)
+
+    sns.boxplot(ax=axes[1], data=df, y=target_col, x=col_name, orient="h")
+    axes[1].set_ylabel("Target")
+    axes[0].set_ylabel('Train')
+    plt.tight_layout()
+    plt.show()
+
+
+# # plotting counting values of categorical columns
+# def plot_value_counts(fig, axes, col_name, train, col_percents, target_col):
+#     fig.suptitle("Value Counts of " + col_name)
+#     fig.align_labels()
+#     sns.countplot(
+#         ax=axes[0],
+#         data=train,
+#         y=col_name,
+#         hue=target_col,
+#         palette=sns.color_palette("ch:s=-.2,r=.6", n_colors=5),
+#     )
+
+#     percented_patches_second(axes[0], col_percents)
+#     sns.color_palette("rocket", as_cmap=True)
+#     sns.countplot(
+#         ax=axes[1],
+#         # data=test,
+#         y=col_name,
+#         palette=sns.color_palette("rocket_r", n_colors=5),
+#     )
+#     axes[0].set_xlabel("Train")
+#     # axes[1].set_xlabel("Test")
+#     axes[0].legend(
+#         title="Target", labels=["Bad", "Good"], loc="upper left", bbox_to_anchor=(1, 1)
+#     )
+#     axes[0].set_ylabel("")
+#     # axes[1].set_ylabel("")
+#     plt.tight_layout()
+#     plt.show()
+#     plt.close(fig)
+
+
+# plotting counting values of categorical columns
+def plot_value_counts(col_name, df, target_col):
+    fig,axes = plt.subplots(1,1, figsize=(8,2))
+    fig.suptitle("Value Counts of " + col_name)
+    fig.align_labels()
+    sns.countplot(
+        ax=axes,
+        data=df,
+        y=col_name,
+        hue=target_col,
+        palette=sns.color_palette("ch:s=-.2,r=.6", n_colors=5),
+    )
+
+def plot_value_counts_big(col_name, df, target_col):
+    fig,axes = plt.subplots(1,1, figsize=(8,8))
+    fig.suptitle("Value Counts of " + col_name)
+    fig.align_labels()
+    sns.countplot(
+        ax=axes,
+        data=df,
+        y=col_name,
+        hue=target_col,
+        palette=sns.color_palette("ch:s=-.2,r=.6", n_colors=5),
+    )
+    # Pending, to show percents
+
+def plot_number_columns_type(df1, df2):
+    # show number of columns per data type
+    number_fields = len(df1.select_dtypes(include="number").columns)
+    object_fields = len(df1.select_dtypes(exclude="number").columns)
+    number_fields_o = len(df2.select_dtypes(include="number").columns)
+    object_fields_o = len(df2.select_dtypes(exclude="number").columns)
+
+    d = {
+        "var_type": ["number", "object"],
+        "quantity_cop": [number_fields, object_fields],
+        "quantity_ori": [number_fields_o, object_fields_o],
+    }
+
+    quant_kind_vars = pd.DataFrame(data=d, index=[1, 2])
+
+    fig, axes = plt.subplots(1, 2, figsize=(8, 2), sharey=True)
+    fig.suptitle("Type columns Quantity Before and After Cleaning")
+    fig.align_labels()
+    sns.barplot(ax=axes[0], y=quant_kind_vars["var_type"], x=quant_kind_vars["quantity_ori"])
+    sns.barplot(ax=axes[1], y=quant_kind_vars["var_type"], x=quant_kind_vars["quantity_cop"])
+
+    axes[0].set_title("Number of Features")
+    axes[0].set_xlabel("Original Dataset")
+    axes[1].set_xlabel("New Dataset")
+
+    target_dist = compute_stats_count(quant_kind_vars, "quantity_cop")
+    percents_cop = [i[2] for i in target_dist]
+    percented_patches_second(axes[1], percents_cop)
+
+    target_dist = compute_stats_count(quant_kind_vars, "quantity_ori")
+    percents_ori = [i[2] for i in target_dist]
+    percented_patches_second(axes[0], percents_ori)
+
+    plt.tight_layout()
+
+    plt.show()
