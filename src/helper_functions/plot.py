@@ -186,23 +186,67 @@ def plot_income_by_other_column(data_frame, income_colname, other_colname, top_n
     plt.tight_layout()
     plt.show()
 
-
 # function to plot distribution of numerical feature
-def plotting_distribution(col_name, df, target_col):
+def plotting_distribution_bar(df1, col_name, target_col="TARGET_LABEL_BAD=1"):
+
+    fig, axes = plt.subplots(1, 1, figsize=(8, 3))
+    fig.suptitle("Distribution of " + col_name)
+    fig.align_labels()
+
+    if df1[col_name].var() != 0:
+        sns.countplot(ax=axes, data=df1, x=col_name, hue=target_col)
+    else:
+        sns.histplot(ax=axes, data=df1, x=col_name, hue=target_col, fill=True)
+
+    # sns.boxplot(ax=axes[1], data=df1, y=target_col, x=col_name, orient="h")
+
+    axes.set_ylabel("Target")
+    # Establece los límites del eje y en 0 y 100 y la ubicación de los ticks en incrementos de 10.
+    plt.yticks(range(0, 25000, 5000))
+
+    # Establece los límites del eje x en 0 y 90 y la ubicación de los ticks cada 5.
+    # plt.xticks(range(0, 8, 1))
+
+    # Agrega una leyenda con las etiquetas y los valores de la media y la mediana.
+    plt.legend()
+    # axes[0].set_ylabel('Train')
+    plt.tight_layout()
+    plt.show()
+
+
+def plotting_distribution(df1, col_name, target_col="TARGET_LABEL_BAD=1"):
     fig, axes = plt.subplots(1, 2, figsize=(8, 3))
     fig.suptitle("Distribution of " + col_name)
     fig.align_labels()
 
-    if df[col_name].var() != 0:
-        sns.kdeplot(ax=axes[0], data=df, x=col_name, hue=target_col, fill=True)
+    if df1[col_name].var() != 0:
+        sns.kdeplot(ax=axes[0], data=df1, x=col_name, hue=target_col, fill=True)
     else:
-        sns.histplot(ax=axes[0], data=df, x=col_name, hue=target_col, fill=True)
+        sns.histplot(ax=axes[0], data=df1, x=col_name, hue=target_col, fill=True)
 
-    sns.boxplot(ax=axes[1], data=df, y=target_col, x=col_name, orient="h")
+    sns.boxplot(ax=axes[1], data=df1, y=target_col, x=col_name, orient="h")
     axes[1].set_ylabel("Target")
     axes[0].set_ylabel('Train')
     plt.tight_layout()
     plt.show()
+
+
+# # function to plot distribution of numerical feature
+# def plotting_distribution(col_name, df, target_col):
+#     fig, axes = plt.subplots(1, 2, figsize=(8, 3))
+#     fig.suptitle("Distribution of " + col_name)
+#     fig.align_labels()
+
+#     if df[col_name].var() != 0:
+#         sns.kdeplot(ax=axes[0], data=df, x=col_name, hue=target_col, fill=True)
+#     else:
+#         sns.histplot(ax=axes[0], data=df, x=col_name, hue=target_col, fill=True)
+
+#     sns.boxplot(ax=axes[1], data=df, y=target_col, x=col_name, orient="h")
+#     axes[1].set_ylabel("Target")
+#     axes[0].set_ylabel('Train')
+#     plt.tight_layout()
+#     plt.show()
 
 
 # # plotting counting values of categorical columns
@@ -236,10 +280,9 @@ def plotting_distribution(col_name, df, target_col):
 #     plt.show()
 #     plt.close(fig)
 
-
 # plotting counting values of categorical columns
-def plot_value_counts(col_name, df, target_col):
-    fig,axes = plt.subplots(1,1, figsize=(8,2))
+def plot_value_counts(df, col_name,  target_col="TARGET_LABEL_BAD=1"):
+    fig,axes = plt.subplots(1,1, figsize=(8,3))
     fig.suptitle("Value Counts of " + col_name)
     fig.align_labels()
     sns.countplot(
@@ -249,6 +292,19 @@ def plot_value_counts(col_name, df, target_col):
         hue=target_col,
         palette=sns.color_palette("ch:s=-.2,r=.6", n_colors=5),
     )
+
+# # plotting counting values of categorical columns
+# def plot_value_counts(col_name, df, target_col):
+#     fig,axes = plt.subplots(1,1, figsize=(8,2))
+#     fig.suptitle("Value Counts of " + col_name)
+#     fig.align_labels()
+#     sns.countplot(
+#         ax=axes,
+#         data=df,
+#         y=col_name,
+#         hue=target_col,
+#         palette=sns.color_palette("ch:s=-.2,r=.6", n_colors=5),
+#     )
 
 def plot_value_counts_big(col_name, df, target_col):
     fig,axes = plt.subplots(1,1, figsize=(8,8))

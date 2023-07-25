@@ -2,10 +2,49 @@ import numpy as np
 # import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.impute import SimpleImputer
+
 
 # Setting the style
 sns.set_theme(style="ticks", palette="pastel")
 sns.set(font_scale=0.8)
+
+
+# function for normalizing data at once.
+def normalized_data(df):
+    df_cop = df.copy()
+    target_col = "TARGET_LABEL_BAD=1"
+
+    # 'PAYMENT_DAY': category = ["1 - 15", "16 - 30"]
+    df_cop['PAYMENT_DAY'] = np.where(df_cop['PAYMENT_DAY'] <= 14, "1 - 14", "15 - 30")
+
+
+    # 'MARITAL_STATUS': category =  {1:'single', 2:'married', 3:'other'}
+    df_cop['MARITAL_STATUS'] = np.where(df_cop['MARITAL_STATUS'] == 1, "single",
+                np.where(df_cop['MARITAL_STATUS'] == 2, "married", "Other"))
+    df_cop['MARITAL_STATUS'] = df_cop['MARITAL_STATUS'].astype('category')
+
+
+    # 'QUANT_DEPENDANTS': numerical changes = [0, 1, 2, + 3]
+    df_cop.loc[df_cop['QUANT_DEPENDANTS'] > 3, 'QUANT_DEPENDANTS'] = 3
+    # 'HAS_DEPENDANTS': categorical column = {0:False, >0:True}
+    df_cop['HAS_DEPENDANTS'] = np.where(df_cop['QUANT_DEPENDANTS'] >= 1, True, False)
+
+
+    # "RESIDENCE_TYPE": numerical changes = {1: 'owned', 2:'mortgage', 3:'rented', 4:'family', 5:'other'}
+    imp_const_zero = SimpleImputer(missing_values=np.nan, strategy="constant", fill_value=0)
+    df_cop["RESIDENCE_TYPE"] = imp_const_zero.fit_transform(df_cop[["RESIDENCE_TYPE"]]).ravel()
+    # categorical changes
+    mapping = {1: "owned", 2: "mortgage", 3: "rented", 4: "family", 5: "other"}
+    df_cop["RESIDENCE_TYPE"] = df_cop["RESIDENCE_TYPE"].map(lambda x: mapping[x] if x in mapping else "other")
+    df_cop["RESIDENCE_TYPE"] = df_cop["RESIDENCE_TYPE"].astype('category')
+
+
+
+
+
+
+    return (df_cop, target_col)
 
 def trunc(valor, liminf, limsup):
     if valor < liminf:
