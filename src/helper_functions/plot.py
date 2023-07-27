@@ -210,8 +210,8 @@ def plotting_distribution_bar(df, col_name, orientation='vertical', ordered=True
 
     y_max = max(max_value_0, max_value_1)
 
-    axes[0].set_ylabel("Target = 0")
-    axes[1].set_ylabel("Target = 1")
+    axes[0].set_ylabel("APPROVED")
+    axes[1].set_ylabel("NOT APPROVED")
     axes[0].set_ylim(top=y_max * 1.15)
     axes[1].set_ylim(top=y_max * 1.15)
     plt.tight_layout()
@@ -266,8 +266,8 @@ def plotting_distribution_kde(df, col_name, orientation='vertical', target_col="
 
     y_max = max(max_value_0, max_value_1)
 
-    axes[0].set_ylabel("Target = 0")
-    axes[1].set_ylabel("Target = 1")
+    axes[0].set_ylabel("APPROVED")
+    axes[1].set_ylabel("NOT APPROVED")
     plt.tight_layout()
     plt.show()
 
