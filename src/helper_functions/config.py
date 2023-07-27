@@ -18,3 +18,6 @@ DATASET_DESCRIPTION_URL = f'{PREFIX}/PAKDD2010_VariablesList.XLS'
 
 DATASET_LEADERBOARD = str(Path(DATASET_ROOT_PATH) / "leaderboard_data.csv")
 DATASET_TEADERBOARD_URL = f'{PREFIX}/PAKDD2010_Leaderboard_Submission_Example.txt'
+
+# to download clean-dataset
+DATASET_NORMALIZED = str(Path(DATASET_ROOT_PATH) / "clean_data.csv")

@@ -41,7 +41,6 @@ def get_datasets() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
     )
     
-   
     # Download application_train.csv
     if not os.path.exists(config.DATASET_TRAIN):
         s3.download_file(config.BUCKET, config.DATASET_TRAIN_URL, f'{config.DATASET_ROOT_PATH}/train_data.csv')
@@ -65,10 +64,24 @@ def get_datasets() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     return (app_train, app_test, df_excel)
 
 
+# to create a csv file from a pandas df
 def df_csv(df, name):
     new_path = str(Path(config.DATASET_ROOT_PATH) / name)
     df.to_csv(new_path, index=False)
     print(f'The file has been saved in: {new_path}')
+
+
+# to load a specific csv as a pandas df
+def get_normalized_model():
+    app_normalized = pd.read_csv(config.DATASET_NORMALIZED, encoding='latin1')
+    return app_normalized
+
+
+
+
+
+
+
 
 
 
