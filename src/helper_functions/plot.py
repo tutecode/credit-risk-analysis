@@ -44,8 +44,12 @@ def percented_patches_second(ax, col_stats):
 
 # function to split target = 0, and target =1, and obtain values for chart
 def target_values(df, col_name, value, target_col="TARGET_LABEL_BAD=1"):
+    
     if value < 0 or value > 1: return print('The nuber must be between 0 and 1')
-    target = df[df[target_col] == value].copy()
+    
+    target = df[df[target_col] == value].sort_values(by=col_name).copy()
+    counts = target[col_name].value_counts().sort_index()
+    percentages = round((target[col_name].value_counts(normalize=True).sort_index() * 100), 2)
     counts = target[col_name].value_counts().sort_index()
     max_value = counts.max()
     percentages = round((target[col_name].value_counts(normalize=True).sort_index() * 100), 2)
@@ -174,7 +178,7 @@ def plot_value_counts(df, col_name,  target_col="TARGET_LABEL_BAD=1"):
 
 
 # to plot the distribution, it can ver in vertical orientation or horizontal orientation
-def plotting_distribution_bar(df, col_name, orientation='vertical', target_col="TARGET_LABEL_BAD=1"):
+def plotting_distribution_bar(df, col_name, orientation='vertical', ordered=True, target_col="TARGET_LABEL_BAD=1"):
 
     # chart's orientation
     if orientation == 'horizontal': fig, axes = plt.subplots(1, 2, figsize=(10, 5))
@@ -222,10 +226,10 @@ def plotting_distribution_bar_double(df1, col_name, target_col="TARGET_LABEL_BAD
     fig.suptitle("Distribution of " + col_name)
     fig.align_labels()
 
-    if df1[col_name].var() != 0:
-        sns.countplot(ax=axes, data=df1, x=col_name, hue=target_col)
-    else:
-        sns.histplot(ax=axes, data=df1, x=col_name, hue=target_col, fill=True)
+    # if df1[col_name].var() != 0:
+    sns.countplot(ax=axes, data=df1, x=col_name, hue=target_col)
+    # else:
+    #     sns.histplot(ax=axes, data=df1, x=col_name, hue=target_col, fill=True)
 
     # sns.boxplot(ax=axes[1], data=df1, y=target_col, x=col_name, orient="h")
 
@@ -236,9 +240,7 @@ def plotting_distribution_bar_double(df1, col_name, target_col="TARGET_LABEL_BAD
     # Establece los límites del eje x en 0 y 90 y la ubicación de los ticks cada 5.
     # plt.xticks(range(0, 8, 1))
 
-    # Agrega una leyenda con las etiquetas y los valores de la media y la mediana.
     plt.legend()
-    # axes[0].set_ylabel('Train')
     plt.tight_layout()
     plt.show()
 

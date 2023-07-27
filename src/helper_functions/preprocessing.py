@@ -37,6 +37,28 @@ def unique_numerical(df1, df2):
             )
         )
 
+    
+# shows only non numerical columns
+def unique_categorical(df1, df2):
+    category_field_names = df1.select_dtypes(exclude="number").columns.to_list()
+    metadata_dic = {colname: idx for idx, colname in enumerate(df1.columns)}
+    print("{:<32}{:<15}{}\n".format("Feature Name", "UniqueCount", "RangeMeta"))
+    for categorical_field in category_field_names:
+        print(
+            "{:<32}{:<15}{}".format(
+                categorical_field,
+                len(df1[categorical_field].unique()),
+                df2.iloc[metadata_dic[categorical_field], 2],
+            )
+        )
+
+
+# for columns with lots of outliers
+def proc_outliers(df, field):
+    # impute nans with mean value of column
+    df[field].replace({np.nan: df[field].mean()}, inplace=True)
+
+
 # function for normalizing data at once
 def normalized_data(df):
     df_cop = df.copy()
@@ -49,12 +71,12 @@ def normalized_data(df):
 
     # 'MARITAL_STATUS': category =  {1:'single', 2:'married', 3:'other'}
     df_cop['MARITAL_STATUS'] = np.where(df_cop['MARITAL_STATUS'] == 1, "single",
-                np.where(df_cop['MARITAL_STATUS'] == 2, "married", "Other"))
+                np.where(df_cop['MARITAL_STATUS'] == 2, "married", "other"))
     df_cop['MARITAL_STATUS'] = df_cop['MARITAL_STATUS'].astype('category')
 
 
     # 'QUANT_DEPENDANTS': numerical changes = [0, 1, 2, + 3]
-    df_cop.loc[df_cop['QUANT_DEPENDANTS'] > 3, 'QUANT_DEPENDANTS'] = 3
+    df_cop.loc[df_cop['QUANT_DEPENDANTS'] > 2, 'QUANT_DEPENDANTS'] = 2
     # 'HAS_DEPENDANTS': categorical column = {0:False, >0:True}
     df_cop['HAS_DEPENDANTS'] = np.where(df_cop['QUANT_DEPENDANTS'] >= 1, True, False)
 
@@ -98,20 +120,34 @@ def normalized_data(df):
     df_cop["HAS_BANKING_ACCOUNTS"] = df_cop["HAS_BANKING_ACCOUNTS"].astype('category')
 
 
-    # 'PERSONAL_ASSETS_VALUE': = N, Y
+    # 'PERSONAL_ASSETS_VALUE': changed to 'HAS_PERSONAL_ASSETS' = N, Y
     df_cop['HAS_PERSONAL_ASSETS'] = np.where(df_cop['PERSONAL_ASSETS_VALUE'] > 0, "Y", "N")
     df_cop["HAS_PERSONAL_ASSETS"] = df_cop["HAS_PERSONAL_ASSETS"].astype('category')
     
-    # app_test_cop[tmp_col] = np.where(app_test_cop[curr_col_name]>0,"Y","N")
-    # percents_by_target = get_percents_by_target(tmp_col,app_train_cop,target_col)
-    # fig,axes = plt.subplots(1,2, figsize=(8,2))
-    # plot_value_counts(fig,axes,tmp_col,app_train_cop,app_test_cop,percents_by_target,target_col)
-    # # after cleaning
-    # percents_by_target = preprocessing.get_percents_by_target(tmp_col, app_train_cop, target_col)
-    # plot.plot_value_counts(tmp_col, app_train_cop, target_col)
+
+    # 'QUANT_CARS':changed to 'HAS_CARS' = N, Y
+    df_cop['HAS_CARS'] = np.where(df_cop['QUANT_CARS'] == 0, "N", "Y")
+    df_cop["HAS_CARS"] = df_cop["HAS_CARS"].astype('category')
 
 
+    # "APPLICATION_SUBMISSION_TYPE": 0 values changed to "Carga"
+    df_cop.loc[df_cop["APPLICATION_SUBMISSION_TYPE"] != "Web", "APPLICATION_SUBMISSION_TYPE"] = "Carga"
+    df_cop["APPLICATION_SUBMISSION_TYPE"] = df_cop["APPLICATION_SUBMISSION_TYPE"].astype('category')
 
+    
+    # 'SEX': deleted unknown values, changed to categorical
+    df_cop.drop(df_cop[(df_cop["SEX"] == "N")].index,inplace=True,)
+    df_cop.drop(df_cop[(df_cop["SEX"] == " ")].index,inplace=True,)
+    df_cop["SEX"] = df_cop["SEX"].astype('category')
+    
+    
+    # 'AGE'
+    bins = [0, 18, 25, 35, 45, 60, float('inf')]
+    labels = ['< 18', '18 - 25', '26 - 35', '36 - 45', '46 - 60', '> 60']
+    df_cop['AGE'] = pd.cut(df_cop['AGE'], bins=bins, labels=labels)
+    
+    
+    
     return (df_cop, target_col)
 
 # def trunc(valor, liminf, limsup):
