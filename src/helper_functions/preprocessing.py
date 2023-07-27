@@ -139,15 +139,15 @@ def normalized_data(df):
     # 'AGE'
     bins = [0, 18, 25, 35, 45, 60, float('inf')]
     labels = ['< 18', '18 - 25', '26 - 35', '36 - 45', '46 - 60', '> 60']
-    df_cop['AGE'] = pd.cut(df_cop['AGE'], bins=bins, labels=labels)
-
-    
-    # change columns to category, except boolean columns
-    # object_columns = [col for col in df_cop.columns if df_cop[col].dtype != 'boolean']
-    # df_cop[object_columns] = df_cop[object_columns].astype('category')
-    
+    df_cop['AGE'] = pd.cut(df_cop['AGE'], bins=bins, labels=labels) 
 
     return (df_cop, target_col)
+
+def categorical_columns(df):
+    # change columns to category, except boolean columns
+    object_columns = [col for col in df.columns if df[col].dtype != 'boolean']
+    df[object_columns] = df[object_columns].astype('category')
+    return df
 
 
 def delete_columns(df):
@@ -212,6 +212,7 @@ def delete_columns(df):
     print("\nThose columns were not found: \n",list_not_find)
 
     return df
+
 
 
 

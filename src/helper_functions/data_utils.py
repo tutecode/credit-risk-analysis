@@ -13,7 +13,7 @@ import os
 from typing import Tuple
 import os
 import boto3
-# from pathlib import Path
+from pathlib import Path
 from dotenv import load_dotenv
 import pandas as pd
 from helper_functions import config
@@ -63,6 +63,15 @@ def get_datasets() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     app_test.columns = df_excel['Var_Title'].to_list()[:-1]
 
     return (app_train, app_test, df_excel)
+
+
+def df_csv(df, name):
+    new_path = str(Path(config.DATASET_ROOT_PATH) / name)
+    df.to_csv(new_path, index=False)
+    print(f'The file has been saved in: {new_path}')
+
+
+
 
 def get_feature_in_set(
     app_train: pd.DataFrame
