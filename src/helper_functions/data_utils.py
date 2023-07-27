@@ -73,148 +73,148 @@ def df_csv(df, name):
 
 
 
-def get_feature_in_set(
-    app_train: pd.DataFrame
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """
-    Separates our train and test datasets columns between Features
-    (the input to the model) and Targets (what the model has to predict with the
-    given features).
+# def get_feature_in_set(
+#     app_train: pd.DataFrame
+# ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+#     """
+#     Separates our train and test datasets columns between Features
+#     (the input to the model) and Targets (what the model has to predict with the
+#     given features).
 
-    Arguments:
-        app_train : pd.DataFrame
-            Training datasets
+#     Arguments:
+#         app_train : pd.DataFrame
+#             Training datasets
 
-    Returns:
-        app_train : pd.DataFrame
-            Training features
-        app_val : pd.DataFrame
-            Validation features
-        app_test : pd.DataFrame
-            Testing features
-    """
-    app_train_set, app_val_set, app_test_set = None, None, None
+#     Returns:
+#         app_train : pd.DataFrame
+#             Training features
+#         app_val : pd.DataFrame
+#             Validation features
+#         app_test : pd.DataFrame
+#             Testing features
+#     """
+#     app_train_set, app_val_set, app_test_set = None, None, None
     
-    app_temp_set, app_test_set = train_test_split(app_train, test_size=0.2,random_state=40)
-    app_train_set, app_val_set = train_test_split(app_temp_set, test_size=0.1,random_state=0)
+#     app_temp_set, app_test_set = train_test_split(app_train, test_size=0.2,random_state=40)
+#     app_train_set, app_val_set = train_test_split(app_temp_set, test_size=0.1,random_state=0)
 
-    return app_train_set, app_val_set, app_test_set
+#     return app_train_set, app_val_set, app_test_set
 
-def preprocess_data(
-    train_df: pd.DataFrame, val_df: pd.DataFrame, test_df: pd.DataFrame
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Pre processes data for modeling. Receives train, val and test dataframes
-    and returns numpy ndarrays of cleaned up dataframes with feature engineering
-    already performed.
+# def preprocess_data(
+#     train_df: pd.DataFrame, val_df: pd.DataFrame, test_df: pd.DataFrame
+# ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+#     """
+#     Pre processes data for modeling. Receives train, val and test dataframes
+#     and returns numpy ndarrays of cleaned up dataframes with feature engineering
+#     already performed.
 
-    Arguments:
-        train_df : pd.DataFrame
-        val_df : pd.DataFrame
-        test_df : pd.DataFrame
+#     Arguments:
+#         train_df : pd.DataFrame
+#         val_df : pd.DataFrame
+#         test_df : pd.DataFrame
 
-    Returns:
-        train : np.ndarrary
-        val : np.ndarrary
-        test : np.ndarrary
-    """
-    # Print shape of input data
-    print("Input train data shape: ", train_df.shape)
-    print("Input val data shape: ", val_df.shape)
-    print("Input test data shape: ", test_df.shape, "\n")
+#     Returns:
+#         train : np.ndarrary
+#         val : np.ndarrary
+#         test : np.ndarrary
+#     """
+#     # Print shape of input data
+#     print("Input train data shape: ", train_df.shape)
+#     print("Input val data shape: ", val_df.shape)
+#     print("Input test data shape: ", test_df.shape, "\n")
 
-    # Make a copy of the dataframes
-    working_train_df = train_df.copy()
-    working_val_df = val_df.copy()
-    working_test_df = test_df.copy()
+#     # Make a copy of the dataframes
+#     working_train_df = train_df.copy()
+#     working_val_df = val_df.copy()
+#     working_test_df = test_df.copy()
 
-    # Taking the columns that contain objects.
-    category_columns = working_train_df.select_dtypes(exclude="number").columns.to_list()
-    print("cat_cols: ", working_train_df.select_dtypes(exclude="number").columns)
-    numeric_columns = working_train_df.select_dtypes(include="number").columns.to_list()
-    print(numeric_columns)
-    # Filtering the dataset.
-    aux_dataframe = working_train_df[category_columns].copy()
-    mask_2 = (aux_dataframe.nunique() == 2).values
-    cat_2 = aux_dataframe.loc[:, mask_2].columns
-    print(cat_2)
-    mask_gt_2 = (aux_dataframe.nunique() > 2).values
-    cat_gt_2 = aux_dataframe.loc[:, mask_gt_2].columns
-    print(cat_gt_2)
+#     # Taking the columns that contain objects.
+#     category_columns = working_train_df.select_dtypes(exclude="number").columns.to_list()
+#     print("cat_cols: ", working_train_df.select_dtypes(exclude="number").columns)
+#     numeric_columns = working_train_df.select_dtypes(include="number").columns.to_list()
+#     print(numeric_columns)
+#     # Filtering the dataset.
+#     aux_dataframe = working_train_df[category_columns].copy()
+#     mask_2 = (aux_dataframe.nunique() == 2).values
+#     cat_2 = aux_dataframe.loc[:, mask_2].columns
+#     print(cat_2)
+#     mask_gt_2 = (aux_dataframe.nunique() > 2).values
+#     cat_gt_2 = aux_dataframe.loc[:, mask_gt_2].columns
+#     print(cat_gt_2)
 
-    numeric_transformer = Pipeline(
-        steps=[
-            ("imputer", SimpleImputer(strategy='median')), 
-            ("scaler", RobustScaler())
-        ]
-    )
-    categorical_transformer = Pipeline(
-        steps=[
-            ("imputer", SimpleImputer(strategy='most_frequent')),
-            ("encoder", OneHotEncoder(handle_unknown="ignore", sparse_output=False)),
-            ("scaler", RobustScaler())
-        ]
-    )
-    bincategorical_transformer = Pipeline(
-        steps=[
-            ("imputer", SimpleImputer(strategy='most_frequent')),
-            ("encoder", OrdinalEncoder()),
-        ]
-    )
+#     numeric_transformer = Pipeline(
+#         steps=[
+#             ("imputer", SimpleImputer(strategy='median')), 
+#             ("scaler", RobustScaler())
+#         ]
+#     )
+#     categorical_transformer = Pipeline(
+#         steps=[
+#             ("imputer", SimpleImputer(strategy='most_frequent')),
+#             ("encoder", OneHotEncoder(handle_unknown="ignore", sparse_output=False)),
+#             ("scaler", RobustScaler())
+#         ]
+#     )
+#     bincategorical_transformer = Pipeline(
+#         steps=[
+#             ("imputer", SimpleImputer(strategy='most_frequent')),
+#             ("encoder", OrdinalEncoder()),
+#         ]
+#     )
     
-    ct_preprocessing = ColumnTransformer(transformers=[
-        ('transform_num', numeric_transformer, numeric_columns),
-        ('transform_cat', categorical_transformer, cat_gt_2),
-        ('transform_bin', bincategorical_transformer, cat_2),
+#     ct_preprocessing = ColumnTransformer(transformers=[
+#         ('transform_num', numeric_transformer, numeric_columns),
+#         ('transform_cat', categorical_transformer, cat_gt_2),
+#         ('transform_bin', bincategorical_transformer, cat_2),
         
-    ], remainder='passthrough')
+#     ], remainder='passthrough')
 
-    ct_preprocessing.fit(working_train_df)
-    # # imputer.set_output(transform="pandas")
+#     ct_preprocessing.fit(working_train_df)
+#     # # imputer.set_output(transform="pandas")
 
-    working_train_df = ct_preprocessing.transform(working_train_df)
-    working_val_df = ct_preprocessing.transform(working_val_df)
-    working_test_df = ct_preprocessing.transform(working_test_df)
+#     working_train_df = ct_preprocessing.transform(working_train_df)
+#     working_val_df = ct_preprocessing.transform(working_val_df)
+#     working_test_df = ct_preprocessing.transform(working_test_df)
 
-    return working_train_df, working_val_df, working_test_df
+#     return working_train_df, working_val_df, working_test_df
 
-def get_feature_target(
-    app_train: pd.DataFrame, app_val: pd.DataFrame, app_test: pd.DataFrame
-) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series,pd.DataFrame, pd.Series]:
-    """
-    Separates our train and test datasets columns between Features
-    (the input to the model) and Targets (what the model has to predict with the
-    given features).
+# def get_feature_target(
+#     app_train: pd.DataFrame, app_val: pd.DataFrame, app_test: pd.DataFrame
+# ) -> Tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series,pd.DataFrame, pd.Series]:
+#     """
+#     Separates our train and test datasets columns between Features
+#     (the input to the model) and Targets (what the model has to predict with the
+#     given features).
 
-    Arguments:
-        app_train : pd.DataFrame
-            Training datasets
-        app_test : pd.DataFrame
-            Test datasets
+#     Arguments:
+#         app_train : pd.DataFrame
+#             Training datasets
+#         app_test : pd.DataFrame
+#             Test datasets
 
-    Returns:
-        X_train : pd.DataFrame
-            Training features
-        y_train : pd.Series
-            Training target
-        X_test : pd.DataFrame
-            Test features
-        y_test : pd.Series
-            Test target
-    """
-    X_train, y_train, X_val, y_val,X_test, y_test = None, None, None, None,None,None
+#     Returns:
+#         X_train : pd.DataFrame
+#             Training features
+#         y_train : pd.Series
+#             Training target
+#         X_test : pd.DataFrame
+#             Test features
+#         y_test : pd.Series
+#             Test target
+#     """
+#     X_train, y_train, X_val, y_val,X_test, y_test = None, None, None, None,None,None
 
-    # training
-    X_train = app_train[:,:-1]
-    y_train = app_train[:,-1:]
+#     # training
+#     X_train = app_train[:,:-1]
+#     y_train = app_train[:,-1:]
 
-    # validation
-    X_val = app_val[:,:-1]
-    y_val = app_val[:,-1:]
+#     # validation
+#     X_val = app_val[:,:-1]
+#     y_val = app_val[:,-1:]
 
     
-    # testing
-    X_test = app_test[:,:-1]
-    y_test = app_test[:,-1:]
+#     # testing
+#     X_test = app_test[:,:-1]
+#     y_test = app_test[:,-1:]
 
-    return X_train, y_train, X_val, y_val, X_test,y_test
+#     return X_train, y_train, X_val, y_val, X_test,y_test
