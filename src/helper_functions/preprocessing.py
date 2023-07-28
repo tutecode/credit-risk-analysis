@@ -213,46 +213,46 @@ def delete_columns(df):
     return df
 
 
-# separate columns for encoder
-def separate_binary_columns(df):
-    binary_columns = []
-    non_binary_columns = []
+# # separate columns for encoder
+# def separate_binary_columns(df):
+#     binary_columns = []
+#     non_binary_columns = []
 
-    for column in df.columns:
-        unique_values = df[column].nunique()
-        if unique_values == 2: binary_columns.append(column)
-        else: non_binary_columns.append(column)
+#     for column in df.columns:
+#         unique_values = df[column].nunique()
+#         if unique_values == 2: binary_columns.append(column)
+#         else: non_binary_columns.append(column)
 
-    return binary_columns, non_binary_columns
+#     return binary_columns, non_binary_columns
 
 
 # receives get_dummies or (onehot-encoder and category-encoder)
 def encoding(df, get_dummies=False, target='TARGET_LABEL_BAD=1'):
 
-    target = pd.DataFrame(df[target])
     df_cop = df.drop(columns = target)
-    _, non_binary_columns = separate_binary_columns(df_cop)
-
+    cols_to_encode = [col for col in df.columns if col != target]
     
     if get_dummies:
-        # cols_to_encode = [col for col in df.columns if col != target] # don't allow encoding in target
-        df_concat_encoded = pd.get_dummies(data=df_cop, columns=non_binary_columns, drop_first=True)
-        return(df_concat_encoded, target)
+        df_encoded = pd.get_dummies(data=df_cop, columns=cols_to_encode, drop_first=True)
+        target = pd.DataFrame(df[target]).astype('uint8')
+        df_dummy = pd.concat([df_encoded, target], axis=1)
+        return(df_dummy)
+    
     else:
-        # _, non_binary_columns = separate_binary_columns(df_cop)
-        non_binary_columns.remove('RESIDENCIAL_STATE') # this column will have category encoder due to amount of unic values
+        cols_to_encode.remove('RESIDENCIAL_STATE') # this column will have category encoder due to amount of unic values
         
         # one-hot encoder
         oh_encoder = OneHotEncoder(drop='first', sparse=False) 
-        encoded_onehot = oh_encoder.fit_transform(df_cop[non_binary_columns])
-        encoded_onehot = pd.DataFrame(encoded_onehot, columns=oh_encoder.get_feature_names_out(input_features=non_binary_columns))
+        encoded_onehot = oh_encoder.fit_transform(df_cop[cols_to_encode])
+        encoded_onehot = pd.DataFrame(encoded_onehot, columns=oh_encoder.get_feature_names_out(input_features=cols_to_encode))
 
         # category encoder
         ce_encoder = ce.BinaryEncoder(cols=['RESIDENCIAL_STATE'])
         encoded_category = ce_encoder.fit_transform(df_cop[['RESIDENCIAL_STATE']])
 
         # join both encoders into the same dataframe
-        df_encoded = pd.concat([encoded_onehot, encoded_category], axis=1)
-        return (df_encoded, target)
+        target = pd.DataFrame(df[target]).astype('int64')
+        df_encoded = pd.concat([encoded_onehot, encoded_category, target], axis=1)
+        return (df_encoded)
 
 

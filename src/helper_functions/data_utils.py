@@ -88,10 +88,12 @@ def get_normalized_model():
 
 
 # train, test, val split
-def get_feature(app_train, app_target):
+def get_feature(df, target_col = 'TARGET_LABEL_BAD=1'):
     
-    y_target = app_target.astype('category') # to convert into category
-    X_temp, X_test, y_temp, y_test = train_test_split(app_train, y_target, test_size=0.2, random_state=42)
+    target = df[target_col]
+    df_train = df.drop(columns=[target_col])
+    # y_target = app_target.astype('category') # to convert into category
+    X_temp, X_test, y_temp, y_test = train_test_split(df_train, target, test_size=0.2, random_state=42)
     X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=0.15, random_state=42)
 
     return X_train, y_train, X_test, y_test, X_val, y_val
