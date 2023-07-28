@@ -77,17 +77,24 @@ def get_normalized_model():
     return app_normalized
 
 
-# creates train, test and val data
-def get_feature_in_set(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+# # creates train, test and val data
+# def get_feature_in_set(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
 
-    app_train_set, app_val_set, app_test_set = None, None, None
-    app_temp_set, app_test_set = train_test_split(df, test_size=0.2,random_state=40)
-    app_train_set, app_val_set = train_test_split(app_temp_set, test_size=0.15,random_state=0)
+#     app_train_set, app_val_set, app_test_set = None, None, None
+#     app_temp_set, app_test_set = train_test_split(df, test_size=0.2,random_state=40)
+#     app_train_set, app_val_set = train_test_split(app_temp_set, test_size=0.15,random_state=0)
 
-    return app_train_set, app_test_set, app_val_set
+#     return app_train_set, app_test_set, app_val_set
 
 
+# train, test, val split
+def get_feature(app_train, app_target):
+    
+    y_target = app_target.astype('category') # to convert into category
+    X_temp, X_test, y_temp, y_test = train_test_split(app_train, y_target, test_size=0.2, random_state=42)
+    X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=0.15, random_state=42)
 
+    return X_train, y_train, X_test, y_test, X_val, y_val
 
 
 

@@ -212,8 +212,8 @@ def plotting_distribution_bar(df, col_name, orientation='vertical', ordered=True
 
     axes[0].set_ylabel("APPROVED")
     axes[1].set_ylabel("NOT APPROVED")
-    axes[0].set_ylim(top=y_max * 1.15)
-    axes[1].set_ylim(top=y_max * 1.15)
+    axes[0].set_ylim(top=max_value_0 * 1.15)
+    axes[1].set_ylim(top=max_value_1 * 1.15)
     plt.tight_layout()
 
     plt.show()

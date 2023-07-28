@@ -64,7 +64,7 @@ def normalized_data(df):
     target_col = "TARGET_LABEL_BAD=1"
 
     # 'PAYMENT_DAY': category = ["1 - 15", "16 - 30"]
-    df_cop['PAYMENT_DAY'] = np.where(df_cop['PAYMENT_DAY'] <= 14, "1 - 14", "15 - 30")
+    df_cop['PAYMENT_DAY'] = np.where(df_cop['PAYMENT_DAY'] <= 14, "1_14", "15_30")
 
 
     # 'MARITAL_STATUS': category =  {1:'single', 2:'married', 3:'other'}
@@ -87,8 +87,8 @@ def normalized_data(df):
     df_cop['HAS_RESIDENCE'] =  df_cop['HAS_RESIDENCE'].astype('bool')
 
     # "MONTHS_IN_RESIDENCE": category = ['0 - 6 months', '< 1 year', '+ 1 year']
-    df_cop["MONTHS_IN_RESIDENCE"] = np.where(df_cop["MONTHS_IN_RESIDENCE"] <= 6, '0 - 6 months',
-            np.where(df_cop["MONTHS_IN_RESIDENCE"] <= 12, '6 months - 1 year', '+ 1 year'))
+    df_cop["MONTHS_IN_RESIDENCE"] = np.where(df_cop["MONTHS_IN_RESIDENCE"] <= 6, '0_6',
+            np.where(df_cop["MONTHS_IN_RESIDENCE"] <= 12, '6_12', '>_12'))
 
 
     # "MONTHLY_INCOMES_TOT" and "OTHER_INCOMES" changed by "OTHER_INCOMES"
@@ -97,7 +97,7 @@ def normalized_data(df):
 
     df_cop["MONTHLY_INCOMES_TOT"] = pd.cut(df_cop["MONTHLY_INCOMES_TOT"],
                 bins=[0, 650, 1320, 3323, 8560, float('inf')],
-                labels=['[0 - 650]', '[650 - 1320]', '[1320 - 3323]', '[3323 - 8560]', '[> 8560]'],
+                labels=['[0_650]', '[650_1320]', '[1320_3323]', '[3323_8560]', '[>8560]'],
                 right=False)
 
 
@@ -137,7 +137,7 @@ def normalized_data(df):
     
     # 'AGE'
     bins = [0, 18, 25, 35, 45, 60, float('inf')]
-    labels = ['< 18', '18 - 25', '26 - 35', '36 - 45', '46 - 60', '> 60']
+    labels = ['<_18', '18_25', '26_35', '36_45', '46_60', '>_60']
     df_cop['AGE'] = pd.cut(df_cop['AGE'], bins=bins, labels=labels) 
 
     return (df_cop, target_col)
@@ -231,13 +231,15 @@ def encoding(df, get_dummies=False, target='TARGET_LABEL_BAD=1'):
 
     target = pd.DataFrame(df[target])
     df_cop = df.drop(columns = target)
+    _, non_binary_columns = separate_binary_columns(df_cop)
+
     
     if get_dummies:
-        cols_to_encode = [col for col in df.columns if col != target] # don't allow encoding in target
-        df_concat_encoded = pd.get_dummies(data=df, columns=cols_to_encode, drop_first=True)
-        return(df_concat_encoded)
+        # cols_to_encode = [col for col in df.columns if col != target] # don't allow encoding in target
+        df_concat_encoded = pd.get_dummies(data=df_cop, columns=non_binary_columns, drop_first=True)
+        return(df_concat_encoded, target)
     else:
-        _, non_binary_columns = separate_binary_columns(df_cop)
+        # _, non_binary_columns = separate_binary_columns(df_cop)
         non_binary_columns.remove('RESIDENCIAL_STATE') # this column will have category encoder due to amount of unic values
         
         # one-hot encoder
@@ -251,4 +253,6 @@ def encoding(df, get_dummies=False, target='TARGET_LABEL_BAD=1'):
 
         # join both encoders into the same dataframe
         df_encoded = pd.concat([encoded_onehot, encoded_category], axis=1)
-        return df_encoded, target
+        return (df_encoded, target)
+
+
