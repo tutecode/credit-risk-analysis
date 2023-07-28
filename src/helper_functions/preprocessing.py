@@ -1,9 +1,8 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import category_encoders as ce
 from sklearn.impute import SimpleImputer
-
+from sklearn.preprocessing import OneHotEncoder
 
 # # Setting the style
 # sns.set_theme(style="ticks", palette="pastel")
@@ -227,4 +226,29 @@ def separate_binary_columns(df):
     return binary_columns, non_binary_columns
 
 
+# receives get_dummies or (onehot-encoder and category-encoder)
+def encoding(df, get_dummies=False, target='TARGET_LABEL_BAD=1'):
 
+    target = pd.DataFrame(df[target])
+    df_cop = df.drop(columns = target)
+    
+    if get_dummies:
+        cols_to_encode = [col for col in df.columns if col != target] # don't allow encoding in target
+        df_concat_encoded = pd.get_dummies(data=df, columns=cols_to_encode, drop_first=True)
+        return(df_concat_encoded)
+    else:
+        _, non_binary_columns = separate_binary_columns(df_cop)
+        non_binary_columns.remove('RESIDENCIAL_STATE') # this column will have category encoder due to amount of unic values
+        
+        # one-hot encoder
+        oh_encoder = OneHotEncoder(drop='first', sparse=False) 
+        encoded_onehot = oh_encoder.fit_transform(df_cop[non_binary_columns])
+        encoded_onehot = pd.DataFrame(encoded_onehot, columns=oh_encoder.get_feature_names_out(input_features=non_binary_columns))
+
+        # category encoder
+        ce_encoder = ce.BinaryEncoder(cols=['RESIDENCIAL_STATE'])
+        encoded_category = ce_encoder.fit_transform(df_cop[['RESIDENCIAL_STATE']])
+
+        # join both encoders into the same dataframe
+        df_encoded = pd.concat([encoded_onehot, encoded_category], axis=1)
+        return df_encoded, target
