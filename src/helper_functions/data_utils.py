@@ -14,7 +14,7 @@ import os
 from typing import Tuple
 import os
 import boto3
-# from pathlib import Path
+from pathlib import Path
 from dotenv import load_dotenv
 import pandas as pd
 from helper_functions import config
@@ -64,6 +64,17 @@ def get_datasets() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     app_test.columns = df_excel['Var_Title'].to_list()[:-1]
 
     return (app_train, app_test, df_excel)
+
+def df_csv(df, name):
+    new_path = str(Path(config.DATASET_ROOT_PATH) / name)
+    df.to_csv(new_path, index=False)
+    print(f'The file has been saved in: {new_path}')
+
+def cvs_df(path,name):
+    df = pd.read_csv(path+name)
+    print(f'The file has been loaded: {path+name}')
+    return df
+
 
 def get_feature_in_set(
     app_train: pd.DataFrame
@@ -122,33 +133,55 @@ def preprocess_data(
     working_test_df = test_df.copy()
 
     # Taking the columns that contain objects.
-    category_columns = working_train_df.select_dtypes(exclude="number").columns.to_list()
-    print("cat_cols: ", working_train_df.select_dtypes(exclude="number").columns)
-    numeric_columns = working_train_df.select_dtypes(include="number").columns.to_list()
-    numeric_columns.remove("TARGET_LABEL_BAD=1")
-    print(numeric_columns)
-    # Filtering the dataset.
-    aux_dataframe = working_train_df[category_columns].copy()
-    mask_2 = (aux_dataframe.nunique() == 2).values
-    cat_2 = aux_dataframe.loc[:, mask_2].columns
-    print(cat_2)
-    mask_gt_2 = (aux_dataframe.nunique() > 2).values
-    cat_gt_2 = aux_dataframe.loc[:, mask_gt_2].columns
-    print(cat_gt_2)
+    category_columns = working_train_df.select_dtypes(include="object").columns.to_list()
+    boolean_columns = working_train_df.select_dtypes(include="bool").columns.to_list()
 
-    numeric_transformer = Pipeline(
+    ordinal_columns = ["AGE","MONTHLY_INCOMES_TOT","MONTHS_IN_RESIDENCE"]
+    for ordcol in ordinal_columns:
+        category_columns.remove(ordcol)
+
+    print("bool_cols: ", working_train_df.select_dtypes(include="bool").columns)
+    print(category_columns)
+    print(ordinal_columns)
+
+    # Categories OHE
+    # 'FLAG_EMAIL'  -> bool
+    # 'HAS_DEPENDANTS' -> bool
+    # 'HAS_RESIDENCE' -> bool
+    # 'HAS_CARDS' -> bool
+    # 'HAS_BANKING_ACCOUNTS' -> bool
+    # 'HAS_PERSONAL_ASSETS' -> bool
+    # 'HAS_CARS' -> bool
+    # 'FLAG_PROFESSIONAL_PHONE' -> bool
+    # 'FLAG_RESIDENCIAL_PHONE' -> bool
+    # 'COMPANY' -> bool
+    # 'PAYMENT_DAY' -> category
+    # 'APPLICATION_SUBMISSION_TYPE' -> category
+    # 'SEX' -> category
+    # 'MARITAL_STATUS' -> category
+    # 'RESIDENCIAL_STATE' -> category
+    # 'PRODUCT' -> category
+
+    # Ordinals
+    # 'AGE' -> ordinal
+    # 'MONTHLY_INCOMES_TOT' -> "ordinal"
+    # 'MONTHS_IN_RESIDENCE' -> ordinal
+
+    
+
+    boolean_transformer = Pipeline(
         steps=[
-            ("imputer", SimpleImputer(strategy='median')), 
-            ("scaler", RobustScaler())
+            # dejarlo sin encoding
+            ("encoder", OneHotEncoder(handle_unknown="ignore", sparse_output=False))
         ]
     )
-    categorical_transformer = Pipeline(
+    categorical_transformer_ohe = Pipeline(
         steps=[
             ("imputer", SimpleImputer(strategy='most_frequent')),
             ("encoder", OneHotEncoder(handle_unknown="ignore", sparse_output=False))
         ]
     )
-    bincategorical_transformer = Pipeline(
+    categorical_transformer_ord = Pipeline(
         steps=[
             ("imputer", SimpleImputer(strategy='most_frequent')),
             ("encoder", OrdinalEncoder()),
@@ -156,10 +189,9 @@ def preprocess_data(
     )
     
     ct_preprocessing = ColumnTransformer(transformers=[
-        ('transform_cat', categorical_transformer, cat_gt_2),
-        ('transform_bin', bincategorical_transformer, cat_2),
-        ('transform_num', numeric_transformer, numeric_columns),
-        
+        ('transform_boolean', boolean_transformer, boolean_columns),
+        ('transform_cat_ohe', categorical_transformer_ohe, category_columns),
+        ('transform_cat_ord', categorical_transformer_ord, ordinal_columns),
     ], remainder='passthrough')
 
     ct_preprocessing.fit(working_train_df)
