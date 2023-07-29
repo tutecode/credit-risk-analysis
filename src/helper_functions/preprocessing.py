@@ -3,6 +3,14 @@ import pandas as pd
 import category_encoders as ce
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
+from helper_functions import data_utils, evaluation
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
+import pickle
+
+
+
 
 # # Setting the style
 # sns.set_theme(style="ticks", palette="pastel")
@@ -213,20 +221,6 @@ def delete_columns(df):
     return df
 
 
-# # separate columns for encoder
-# def separate_binary_columns(df):
-#     binary_columns = []
-#     non_binary_columns = []
-
-#     for column in df.columns:
-#         unique_values = df[column].nunique()
-#         if unique_values == 2: binary_columns.append(column)
-#         else: non_binary_columns.append(column)
-
-#     return binary_columns, non_binary_columns
-
-
-# receives get_dummies or (onehot-encoder and category-encoder)
 def encoding(df, get_dummies=False, target='TARGET_LABEL_BAD=1'):
 
     df_cop = df.drop(columns = target)
@@ -234,8 +228,8 @@ def encoding(df, get_dummies=False, target='TARGET_LABEL_BAD=1'):
     
     if get_dummies:
         df_encoded = pd.get_dummies(data=df_cop, columns=cols_to_encode, drop_first=True)
-        target = pd.DataFrame(df[target]).astype('uint8')
-        df_dummy = pd.concat([df_encoded, target], axis=1)
+        df_target = pd.DataFrame(df[target]).astype('uint8')
+        df_dummy = pd.concat([df_encoded, df_target], axis=1) # join target to df
         return(df_dummy)
     
     else:
@@ -250,9 +244,127 @@ def encoding(df, get_dummies=False, target='TARGET_LABEL_BAD=1'):
         ce_encoder = ce.BinaryEncoder(cols=['RESIDENCIAL_STATE'])
         encoded_category = ce_encoder.fit_transform(df_cop[['RESIDENCIAL_STATE']])
 
-        # join both encoders into the same dataframe
-        target = pd.DataFrame(df[target]).astype('int64')
-        df_encoded = pd.concat([encoded_onehot, encoded_category, target], axis=1)
+        # join both encoders and target into the same dataframe
+        df_target = pd.DataFrame(df[target]).astype('int64')
+        df_encoded = pd.concat([encoded_onehot, encoded_category, df_target], axis=1)
         return (df_encoded)
 
 
+# logistic regression model
+def model_logistic_regression(df, save_model = False):
+    
+    X_train, y_train, X_test, y_test, X_val, y_val = data_utils.get_feature(df) 
+    X_train_reshape, y_train_reshape = data_utils.resampling(X_train, y_train)
+
+    param_grid = {'C': [0.99, 0.10, 0.11,  0.111]} # best = 0.11
+    logistic_model = LogisticRegression(penalty='l2', solver='sag', multi_class='auto', max_iter=500)
+    grid_search = GridSearchCV(logistic_model, param_grid, cv=5)
+    grid_search.fit(X_train_reshape, y_train_reshape)
+    
+    # logistic_model.fit(X_train_reshape, y_train_reshape)
+
+    print("Best Score for Logistic Regression: ", grid_search.best_score_)
+
+    print("model score for Logistic Regression: %.3f" % grid_search.score(X_val, y_val))
+    y_hat = grid_search.predict(X_test)
+
+    accuracy = evaluation.get_performance(y_hat, y_test)
+    evaluation.plot_roc(grid_search, y_test, X_test)
+    if save_model:
+        filename = 'logistic_regression.pk'
+        pickle.dump(grid_search, open(filename, 'wb'))
+        # rf = pickle.load(open(filename, 'rb')) # to load model...
+
+    print("Best Score for Logistic Regression: ", grid_search.best_score_)
+
+    return (grid_search)
+
+
+
+# for dummies as encoder
+
+
+# grid_search_dum.fit(X_train_dum_reshape, y_train_dum_reshape)
+# # 
+# # print the best parameters and score
+# print("Best Parameters dummy: ", grid_search_dum.best_params_)
+# print("Best Score dummy: ", grid_search_dum.best_score_)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# import numpy as np
+# import matplotlib.pyplot as plt
+# from sklearn.model_selection import train_test_split
+# from sklearn.linear_model import LogisticRegression
+# from sklearn.metrics import accuracy_score, confusion_matrix
+
+# # Generar datos de ejemplo
+# np.random.seed(0)
+# X = np.random.randn(100, 2)
+# y = (X[:, 0] + 2 * X[:, 1] > 0).astype(int)
+
+# # Dividir los datos en conjuntos de entrenamiento y prueba
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# # Crear el modelo de regresión logística
+# model = LogisticRegression()
+
+# # Ajustar el modelo a los datos de entrenamiento
+# model.fit(X_train, y_train)
+
+# # Realizar predicciones en el conjunto de prueba
+# y_pred = model.predict(X_test)
+
+# # Calcular la precisión del modelo
+# accuracy = accuracy_score(y_test, y_pred)
+# print("Precisión del modelo:", accuracy)
+
+# # Obtener la matriz de confusión
+# conf_matrix = confusion_matrix(y_test, y_pred)
+# print("Matriz de confusión:")
+# print(conf_matrix)
+
+# # Visualizar los resultados
+# plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Paired)
+# plt.xlabel('X1')
+# plt.ylabel('X2')
+# plt.title('Datos de ejemplo y frontera de decisión')
+# plt.show()
+
+
+
+# # separate columns for encoder
+# def separate_binary_columns(df):
+#     binary_columns = []
+#     non_binary_columns = []
+
+#     for column in df.columns:
+#         unique_values = df[column].nunique()
+#         if unique_values == 2: binary_columns.append(column)
+#         else: non_binary_columns.append(column)
+
+#     return binary_columns, non_binary_columns
+
+
+# receives get_dummies or (onehot-encoder and category-encoder)

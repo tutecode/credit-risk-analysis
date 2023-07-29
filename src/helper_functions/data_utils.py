@@ -6,6 +6,8 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectPercentile, chi2
+from imblearn import under_sampling
+
 
 # import sys
 # sys.path.append('..')
@@ -77,6 +79,34 @@ def get_normalized_model():
     return app_normalized
 
 
+# train, test, val split
+def get_feature(df, target_col = 'TARGET_LABEL_BAD=1'):
+    
+    target = df[target_col]
+    df_train = df.drop(columns=[target_col])
+    X_temp, X_test, y_temp, y_test = train_test_split(df_train, target, test_size=0.2, random_state=42)
+    X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=0.15, random_state=42)
+
+    return X_train, y_train, X_test, y_test, X_val, y_val
+
+
+# resampling
+def resampling(X, y, sampling_strategy = 1.0):
+
+    rus = under_sampling.RandomUnderSampler(sampling_strategy=sampling_strategy, random_state=42)
+    X_resampling, y_resampling = rus.fit_resample(X, y)
+    return X_resampling, y_resampling
+
+
+
+
+
+
+
+
+
+
+
 # # creates train, test and val data
 # def get_feature_in_set(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
 
@@ -85,24 +115,6 @@ def get_normalized_model():
 #     app_train_set, app_val_set = train_test_split(app_temp_set, test_size=0.15,random_state=0)
 
 #     return app_train_set, app_test_set, app_val_set
-
-
-# train, test, val split
-def get_feature(df, target_col = 'TARGET_LABEL_BAD=1'):
-    
-    target = df[target_col]
-    df_train = df.drop(columns=[target_col])
-    # y_target = app_target.astype('category') # to convert into category
-    X_temp, X_test, y_temp, y_test = train_test_split(df_train, target, test_size=0.2, random_state=42)
-    X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=0.15, random_state=42)
-
-    return X_train, y_train, X_test, y_test, X_val, y_val
-
-
-
-
-
-
 
 
 # def get_feature_in_set(
