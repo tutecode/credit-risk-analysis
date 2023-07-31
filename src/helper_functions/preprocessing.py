@@ -290,7 +290,47 @@ def model_logistic_regression(df, save_model = False):
 
     print("Best Score for Logistic Regression: ", grid_search.best_score_)
 
-    return (grid_search)
+    return grid_search
+
+# catboost classifier model
+def model_catboost_classifier(df, save_model=False):
+
+    X_train, y_train, X_test, y_test, X_val, y_val = data_utils.get_feature(df) 
+    X_train_reshape, y_train_reshape = data_utils.resampling(X_train, y_train)
+
+    param_grid = {'learning_rate': [0.01, 0.1, 0.2], 'depth': [4, 6, 8]}
+    catboost_model = CatBoostClassifier(iterations=500, random_seed=42, logging_level='Silent')
+    grid_search = GridSearchCV(catboost_model, param_grid, cv=5)
+    grid_search.fit(X_train_reshape, y_train_reshape)
+    
+    print("Best Score for CatBoost Classifier: ", grid_search.best_score_)
+    print("Model score for CatBoost Classifier: %.3f" % grid_search.score(X_val, y_val))
+    print("\n")
+    y_hat = grid_search.predict(X_test)
+
+    accuracy = evaluation.get_performance(y_hat, y_test)
+    evaluation.plot_roc(grid_search, y_test, X_test)
+    
+    if save_model:
+        filename = 'catboost_classifier.pk'
+        pickle.dump(grid_search, open(filename, 'wb'))
+        # catboost = pickle.load(open(filename, 'rb')) # to load model...
+    
+
+    print("Best Score for CatBoost Classifier: ", grid_search.best_score_)
+
+    return grid_search
+
+import pickle
+from catboost import CatBoostClassifier
+from sklearn.model_selection import GridSearchCV
+
+
+
+
+
+
+
 
 
 
