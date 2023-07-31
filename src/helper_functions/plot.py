@@ -171,7 +171,7 @@ def plot_income_by_other_column(data_frame, income_colname, other_colname, top_n
 
 # plotting counting values of categorical columns
 def plot_value_counts(df, col_name,  target_col="TARGET_LABEL_BAD=1"):
-    fig,axes = plt.subplots(1,1, figsize=(10, 5))
+    fig,axes = plt.subplots(1,1, figsize=(9, 4))
     fig.suptitle("Value Counts of " + col_name)
     fig.align_labels()
     sns.countplot(ax=axes, data=df, y=col_name, hue=target_col, palette=sns.color_palette("ch:s=-.2,r=.6", n_colors=5))
@@ -181,8 +181,8 @@ def plot_value_counts(df, col_name,  target_col="TARGET_LABEL_BAD=1"):
 def plotting_distribution_bar(df, col_name, orientation='vertical', ordered=True, target_col="TARGET_LABEL_BAD=1"):
 
     # chart's orientation
-    if orientation == 'horizontal': fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-    elif orientation == 'vertical': fig, axes = plt.subplots(2, 1, figsize=(10, 5))
+    if orientation == 'horizontal': fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+    elif orientation == 'vertical': fig, axes = plt.subplots(2, 1, figsize=(10, 4))
     else: return print('unvalid orientation, must be "vertical" or "horizontal"')
 
     fig.suptitle("Distribution of " + col_name)
@@ -250,8 +250,8 @@ def plotting_distribution_bar_double(df1, col_name, target_col="TARGET_LABEL_BAD
 def plotting_distribution_kde(df, col_name, orientation='vertical', target_col="TARGET_LABEL_BAD=1"):
 
     # chart's orientation
-    if orientation == 'horizontal': fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-    elif orientation == 'vertical': fig, axes = plt.subplots(2, 1, figsize=(10, 5))
+    if orientation == 'horizontal': fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+    elif orientation == 'vertical': fig, axes = plt.subplots(2, 1, figsize=(10, 4))
     else: return print('unvalid orientation, must be "vertical" or "horizontal"')
 
     # fig, axes = plt.subplots(1, 2, figsize=(8, 3))
@@ -271,3 +271,44 @@ def plotting_distribution_kde(df, col_name, orientation='vertical', target_col="
     plt.tight_layout()
     plt.show()
 
+
+# small charts for cards only
+def plotting_distribution_cards(df, col_name, orientation='vertical', ordered=True, target_col="TARGET_LABEL_BAD=1"):
+
+    # chart's orientation
+    if orientation == 'horizontal': fig, axes = plt.subplots(1, 2, figsize=(10, 2))
+    elif orientation == 'vertical': fig, axes = plt.subplots(2, 1, figsize=(10, 2))
+    else: return print('unvalid orientation, must be "vertical" or "horizontal"')
+
+    fig.suptitle("Distribution of " + col_name)
+    fig.align_labels()
+        
+    # target = 0
+    df_0, counts_0, max_value_0, percentages_0 = target_values(df, col_name, 0)
+    sns.countplot(ax=axes[0], data=df_0, x=col_name, color='blue')
+
+    # Add percentage labels above the bars with a small vertical shift
+    x_position = 0
+    for key, val in percentages_0.items():
+        axes[0].text(x_position, counts_0[key] + max_value_0 * 0.02, f"{val}%", ha='center', va='bottom')
+        x_position += 1
+    
+    # target = 1
+    df_1, counts_1, max_value_1, percentages_1 = target_values(df, col_name, 1)
+    sns.countplot(ax=axes[1], data=df_1, x=col_name, color='red')
+    
+    # Add percentage labels above the bars with a small vertical shift
+    x_position = 0
+    for key, val in percentages_1.items():
+        axes[1].text(x_position, counts_1[key] + max_value_1 * 0.02, f"{val}%", ha='center', va='bottom')
+        x_position += 1
+
+    y_max = max(max_value_0, max_value_1)
+
+    axes[0].set_ylabel("APPROVED")
+    axes[1].set_ylabel("NOT APPROVED")
+    axes[0].set_ylim(top=max_value_0 * 1.15)
+    axes[1].set_ylim(top=max_value_1 * 1.15)
+    plt.tight_layout()
+
+    plt.show()

@@ -8,13 +8,26 @@ from helper_functions import data_utils, evaluation
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
 import pickle
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import mean_squared_error, r2_score
 
 
 
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import StackingClassifier
+from sklearn.neural_network import MLPClassifier
+from lightgbm import LGBMClassifier, LGBMRegressor
+from catboost import CatBoostClassifier, CatBoostRegressor
+from xgboost import XGBClassifier, XGBRegressor
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.neural_network import MLPRegressor
 
-# # Setting the style
-# sns.set_theme(style="ticks", palette="pastel")
-# sns.set(font_scale=0.8)
+
+
 
 # Function to change te repated column name
 def repeated_name(df1, df2):
@@ -26,6 +39,7 @@ def repeated_name(df1, df2):
     # Set the new column to the train_data and test_data
     df1.columns = meta_cols
     return df1
+
 
 # shows only numerical columns
 def unique_numerical(df1, df2):
@@ -159,7 +173,7 @@ def categorical_columns(df):
 
 def delete_columns(df):
 
-    # delete columns with 1 single value
+    # delete columns with single values
     num_unique_values = df.nunique()
     columns_to_drop = num_unique_values[num_unique_values == 1].index
     df.drop(columns=columns_to_drop, inplace=True)
@@ -221,6 +235,7 @@ def delete_columns(df):
     return df
 
 
+# encode for model using get_dummies or onehot - category encoder
 def encoding(df, get_dummies=False, target='TARGET_LABEL_BAD=1'):
 
     df_cop = df.drop(columns = target)
@@ -261,11 +276,9 @@ def model_logistic_regression(df, save_model = False):
     grid_search = GridSearchCV(logistic_model, param_grid, cv=5)
     grid_search.fit(X_train_reshape, y_train_reshape)
     
-    # logistic_model.fit(X_train_reshape, y_train_reshape)
-
     print("Best Score for Logistic Regression: ", grid_search.best_score_)
-
     print("model score for Logistic Regression: %.3f" % grid_search.score(X_val, y_val))
+    print("\n")
     y_hat = grid_search.predict(X_test)
 
     accuracy = evaluation.get_performance(y_hat, y_test)
@@ -279,6 +292,114 @@ def model_logistic_regression(df, save_model = False):
 
     return (grid_search)
 
+
+
+
+# evaluate model
+def evaluate_model(model, X_train, X_test, y_train, y_test):
+    
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+
+    return mse, r2
+
+
+# basic models 
+def basic_models (df):
+
+    df_cop = df.copy()
+    X_train, y_train, X_test, y_test, X_val, y_val = data_utils.get_feature(df_cop) 
+    X_train_reshape, y_train_reshape = data_utils.resampling(X_train, y_train)
+
+    # # changes to avoid errors in lightgbm
+    # X_train_reshape.columns = X_train_reshape.columns.str.replace('[^a-zA-Z0-9_]', '_')
+    # y_train_reshape = y_train_reshape.columns.str.replace('[^a-zA-Z0-9_]', '_')
+    # X_test.columns, y_test.columns = X_test.columns.str.replace('[^a-zA-Z0-9_]', '_'), y_test.columns.str.replace('[^a-zA-Z0-9_]', '_')
+    # X_val.columns, y_val.columns = X_val.columns.str.replace('[^a-zA-Z0-9_]', '_'), X_val.columns.str.replace('[^a-zA-Z0-9_]', '_')
+    
+    # Linear Regression Model
+    linear_model = LinearRegression()
+    mse_linear, r2_linear = evaluate_model(linear_model, X_train_reshape, X_test, y_train_reshape, y_test)
+    
+    # Logistic Regression Model
+    logistic_model = LogisticRegression(max_iter=500)
+    mse_logistic, r2_logistic = evaluate_model(logistic_model, X_train_reshape, X_test, y_train_reshape, y_test)
+    
+    # KNN Model # for regression problems
+    knn_model = KNeighborsRegressor()
+    knn_model.fit(X_train_reshape, y_train_reshape)
+    y_pred_knn = knn_model.predict(X_test)
+    mse_knn, r2_knn = mean_squared_error(y_test, y_pred_knn), r2_score(y_test, y_pred_knn)
+    
+    # Gaussian Naive Bayes
+    gnb_model = GaussianNB()
+    mse_gnb, r2_gnb = evaluate_model(gnb_model, X_train_reshape, X_test, y_train_reshape, y_test)
+    
+    # Multi Layer Perceptron
+    mlp_model = MLPRegressor(hidden_layer_sizes=(100,), activation='relu', solver='adam', random_state=42)
+    mlp_model.fit(X_train_reshape, y_train_reshape)
+    y_pred_mlp = mlp_model.predict(X_test)
+    mse_mlp, r2_mlp = mean_squared_error(y_test, y_pred_mlp), r2_score(y_test, y_pred_mlp)
+    
+    # # LightGBM
+    # lgbm_model = LGBMRegressor(random_state=42)
+    # lgbm_model.fit(X_train_reshape, y_train_reshape)
+    # y_pred_lgbm = lgbm_model.predict(X_test)
+    # mse_lgbm, r2_lgbm = mean_squared_error(y_test, y_pred_lgbm), r2_score(y_test, y_pred_lgbm)
+
+    # CatBoost
+    catboost_model = CatBoostRegressor(random_state=42, verbose=False)
+    catboost_model.fit(X_train, y_train)
+    y_pred_catboost = catboost_model.predict(X_test)
+    mse_catboost, r2_catboost = mean_squared_error(y_test, y_pred_catboost), r2_score(y_test, y_pred_catboost)
+
+    # XGBoost
+    # xgboost_model = XGBRegressor(random_state=42)
+    # xgboost_model.fit(X_train, y_train)
+    # y_pred_xgboost = xgboost_model.predict(X_test)
+    # mse_xgboost, r2_xgboost = mean_squared_error(y_test, y_pred_xgboost), r2_score(y_test, y_pred_xgboost)
+    # print('7')
+
+    # Ridge Regression Model
+    ridge_model = Ridge(alpha=1.0)
+    mse_ridge, r2_ridge = evaluate_model(ridge_model, X_train_reshape, X_test, y_train_reshape, y_test)
+
+    # LASSO Regression Model
+    lasso_model = Lasso(alpha=1.0)
+    mse_lasso, r2_lasso = evaluate_model(lasso_model, X_train_reshape, X_test, y_train_reshape, y_test)
+
+    # Decission Tree Model
+    decision_tree_model = DecisionTreeRegressor()
+    mse_dt, r2_dt = evaluate_model(decision_tree_model, X_train_reshape, X_test, y_train_reshape, y_test)
+
+    # Random Forest Classifier
+    rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+    rf_model.fit(X_train_reshape, y_train_reshape)
+    y_pred_rf = rf_model.predict(X_test)
+    mse_rf, r2_rf = mean_squared_error(y_test, y_pred_rf), r2_score(y_test, y_pred_rf)
+
+    results = pd.DataFrame({
+        'Model': ['Linear Regression', 'Logistic Regression', 'KNeighborsRegressor', 'Gaussian Naive Bayes', 'Multi Layer Perceptron',  'CatBoost', 'Ridge Regression', 'LASSO Regression', 'Decission Tree', 'Random Forest'],
+        'MSE': [mse_linear, mse_logistic, mse_knn, mse_gnb, mse_mlp, mse_catboost, mse_ridge, mse_lasso, mse_dt, mse_rf],
+        'R²': [r2_linear, r2_logistic, r2_knn, r2_gnb, r2_mlp, r2_catboost, r2_ridge, r2_lasso, r2_dt, r2_rf]
+    })
+
+    # results = pd.DataFrame({
+    #     'Model': ['Linear Regression', 'Logistic Regression', 'KNeighborsRegressor', 'Gaussian Naive Bayes', 'Multi Layer Perceptron', 'LightGBM', 'CatBoost', 'XGBoost', 'Ridge Regression', 'LASSO Regression', 'Decission Tree', 'Random Forest'],
+    #     'MSE': [mse_linear, mse_logistic, mse_knn, mse_gnb, mse_mlp, mse_lgbm, mse_catboost, mse_xgboost, mse_ridge, mse_lasso, mse_dt, mse_rf],
+    #     'R²': [r2_linear, r2_logistic, r2_knn, r2_gnb, r2_mlp, r2_lgbm, r2_catboost, r2_xgboost, r2_ridge, r2_lasso, r2_dt, r2_rf]
+    # })
+
+    print(results)
+
+
+
+
+
+
+# 
 
 
 # for dummies as encoder
