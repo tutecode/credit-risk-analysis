@@ -312,19 +312,6 @@ def model_catboost_classifier(df, save_model=False):
     return grid_search
 
 
-# Neural Networks
-
-
-
-
-
-
-
-
-
-
-
-
 # evaluate model
 def evaluate_model(model, X_train, X_test, y_train, y_test):
     
