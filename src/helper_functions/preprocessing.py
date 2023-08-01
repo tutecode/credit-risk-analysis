@@ -19,8 +19,6 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
 
 
-
-
 # Function to change te repated column name
 def repeated_name(df1, df2):
     metadata = df2
@@ -345,12 +343,6 @@ def basic_models (df):
     X_train, y_train, X_test, y_test, X_val, y_val = data_utils.get_feature(df_cop) 
     X_train_reshape, y_train_reshape = data_utils.resampling(X_train, y_train)
 
-    # # changes to avoid errors in lightgbm
-    # X_train_reshape.columns = X_train_reshape.columns.str.replace('[^a-zA-Z0-9_]', '_')
-    # y_train_reshape = y_train_reshape.columns.str.replace('[^a-zA-Z0-9_]', '_')
-    # X_test.columns, y_test.columns = X_test.columns.str.replace('[^a-zA-Z0-9_]', '_'), y_test.columns.str.replace('[^a-zA-Z0-9_]', '_')
-    # X_val.columns, y_val.columns = X_val.columns.str.replace('[^a-zA-Z0-9_]', '_'), X_val.columns.str.replace('[^a-zA-Z0-9_]', '_')
-    
     # Linear Regression Model
     linear_model = LinearRegression()
     mse_linear, r2_linear = evaluate_model(linear_model, X_train_reshape, X_test, y_train_reshape, y_test)
@@ -374,25 +366,12 @@ def basic_models (df):
     mlp_model.fit(X_train_reshape, y_train_reshape)
     y_pred_mlp = mlp_model.predict(X_test)
     mse_mlp, r2_mlp = mean_squared_error(y_test, y_pred_mlp), r2_score(y_test, y_pred_mlp)
-    
-    # # LightGBM
-    # lgbm_model = LGBMRegressor(random_state=42)
-    # lgbm_model.fit(X_train_reshape, y_train_reshape)
-    # y_pred_lgbm = lgbm_model.predict(X_test)
-    # mse_lgbm, r2_lgbm = mean_squared_error(y_test, y_pred_lgbm), r2_score(y_test, y_pred_lgbm)
-
+   
     # CatBoost
     catboost_model = CatBoostRegressor(random_state=42, verbose=False)
     catboost_model.fit(X_train, y_train)
     y_pred_catboost = catboost_model.predict(X_test)
     mse_catboost, r2_catboost = mean_squared_error(y_test, y_pred_catboost), r2_score(y_test, y_pred_catboost)
-
-    # XGBoost
-    # xgboost_model = XGBRegressor(random_state=42)
-    # xgboost_model.fit(X_train, y_train)
-    # y_pred_xgboost = xgboost_model.predict(X_test)
-    # mse_xgboost, r2_xgboost = mean_squared_error(y_test, y_pred_xgboost), r2_score(y_test, y_pred_xgboost)
-    # print('7')
 
     # Ridge Regression Model
     ridge_model = Ridge(alpha=1.0)
@@ -418,11 +397,6 @@ def basic_models (df):
         'R²': [r2_linear, r2_logistic, r2_knn, r2_gnb, r2_mlp, r2_catboost, r2_ridge, r2_lasso, r2_dt, r2_rf]
     })
 
-    # results = pd.DataFrame({
-    #     'Model': ['Linear Regression', 'Logistic Regression', 'KNeighborsRegressor', 'Gaussian Naive Bayes', 'Multi Layer Perceptron', 'LightGBM', 'CatBoost', 'XGBoost', 'Ridge Regression', 'LASSO Regression', 'Decission Tree', 'Random Forest'],
-    #     'MSE': [mse_linear, mse_logistic, mse_knn, mse_gnb, mse_mlp, mse_lgbm, mse_catboost, mse_xgboost, mse_ridge, mse_lasso, mse_dt, mse_rf],
-    #     'R²': [r2_linear, r2_logistic, r2_knn, r2_gnb, r2_mlp, r2_lgbm, r2_catboost, r2_xgboost, r2_ridge, r2_lasso, r2_dt, r2_rf]
-    # })
 
     print(results)
 
