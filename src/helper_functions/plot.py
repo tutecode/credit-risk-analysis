@@ -226,9 +226,20 @@ def plotting_distribution_bar_double(df1, col_name, target_col="TARGET_LABEL_BAD
     fig.suptitle("Distribution of " + col_name)
     fig.align_labels()
 
+    # if df1[col_name].var() != 0:
     sns.countplot(ax=axes, data=df1, x=col_name, hue=target_col)
+    # else:
+    #     sns.histplot(ax=axes, data=df1, x=col_name, hue=target_col, fill=True)
+
+    # sns.boxplot(ax=axes[1], data=df1, y=target_col, x=col_name, orient="h")
+
     axes.set_ylabel("Target")
+    # Establece los límites del eje y en 0 y 100 y la ubicación de los ticks en incrementos de 10.
     plt.yticks(range(0, 25000, 5000))
+
+    # Establece los límites del eje x en 0 y 90 y la ubicación de los ticks cada 5.
+    # plt.xticks(range(0, 8, 1))
+
     plt.legend()
     plt.tight_layout()
     plt.show()
