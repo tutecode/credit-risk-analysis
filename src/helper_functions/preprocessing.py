@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 import pandas as pd
 import category_encoders as ce
@@ -7,23 +8,14 @@ from helper_functions import data_utils, evaluation
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
-import pickle
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_squared_error, r2_score
-
-
-
 from sklearn.naive_bayes import GaussianNB
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import StackingClassifier
-from sklearn.neural_network import MLPClassifier
-from lightgbm import LGBMClassifier, LGBMRegressor
 from catboost import CatBoostClassifier, CatBoostRegressor
-from xgboost import XGBClassifier, XGBRegressor
 from sklearn.metrics import accuracy_score, classification_report
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
 
 
@@ -321,9 +313,9 @@ def model_catboost_classifier(df, save_model=False):
 
     return grid_search
 
-import pickle
-from catboost import CatBoostClassifier
-from sklearn.model_selection import GridSearchCV
+
+# Neural Networks
+
 
 
 
