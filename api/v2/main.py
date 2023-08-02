@@ -5,16 +5,17 @@ import logging
 import joblib
 import redis
 import os
+from helper_function import preprocessing, ml_model
 
 app = FastAPI()
 logging.basicConfig(level=logging.ERROR)
 
-# Function to predict loan approval
-def predict_loan_approval(input_data):
-    # Replace this with your actual machine learning model prediction code
-    # For demonstration purposes, we'll return a random prediction (0 or 1)
-    import random
-    return random.randint(0, 1)
+# # Function to predict loan approval
+# def predict_loan_approval(input_data):
+#     # Replace this with your actual machine learning model prediction code
+#     # For demonstration purposes, we'll return a random prediction (0 or 1)
+#     import random
+#     return random.randint(0, 1)
 
 # Initialize Redis client
 redis_client = redis.StrictRedis(host='redis', port=6379, decode_responses=True)
@@ -139,12 +140,13 @@ def predict(name: str = Form(...),
     # Convert the input data dictionary into a DataFrame
     df = pd.DataFrame(input_data, index=[0])
 
-    # Apply any data preprocessing, if required
-
     # Use the trained model to make a prediction
-    prediction = predict_loan_approval(df)
+    df_normalized = preprocessing.overall(df)
+    df_encoded = ml_model.encoding(df_normalized, True)
+    prediction = ml_model.predict_target(df_encoded)
 
-    # Determine the output message
+    # prediction = predict_loan_approval(df_predicted)    
+    # # Determine the output message
     if prediction == 1:
         output_message = f"Dear Mr/Mrs/Ms {name}, your loan is approved!"
     else:

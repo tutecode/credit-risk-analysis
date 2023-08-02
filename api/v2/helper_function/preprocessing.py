@@ -1,62 +1,13 @@
-import numpy as np
 import pandas as pd
-from sklearn.impute import SimpleImputer
-
-# Function to change te repated column name
-def repeated_name(df1, df2):
-    metadata = df2
-
-    meta_cols = metadata["Var_Title"].to_list()
-    meta_cols[43] = "MATE_EDUCATION_LEVEL"
-
-    # Set the new column to the train_data and test_data
-    df1.columns = meta_cols
-    return df1
-
-
-# shows only numerical columns
-def unique_numerical(df1, df2):
-    print("{:<32}{:<15}{}\n".format("Feature Name", "UniqueCount", "RangeMeta"))
-    number_field_names = df1.select_dtypes("number").columns.to_list()
-    metadata = df2
-    metadata_dic = {colname: idx for idx, colname in enumerate(df1.columns)}
-
-    for number_field in number_field_names:
-        # print(number_field.unique())
-        print(
-            "{:<32}{:<15}{}".format(
-                number_field,
-                len(df1[number_field].unique()),
-                metadata.iloc[metadata_dic[number_field], 2],
-            )
-        )
-
-    
-# shows only non numerical columns
-def unique_categorical(df1, df2):
-    category_field_names = df1.select_dtypes(exclude="number").columns.to_list()
-    metadata_dic = {colname: idx for idx, colname in enumerate(df1.columns)}
-    print("{:<32}{:<15}{}\n".format("Feature Name", "UniqueCount", "RangeMeta"))
-    for categorical_field in category_field_names:
-        print(
-            "{:<32}{:<15}{}".format(
-                categorical_field,
-                len(df1[categorical_field].unique()),
-                df2.iloc[metadata_dic[categorical_field], 2],
-            )
-        )
-
-
-# for columns with lots of outliers
-def proc_outliers(df, field):
-    # impute nans with mean value of column
-    df[field].replace({np.nan: df[field].mean()}, inplace=True)
-
+import numpy as np
+import category_encoders as ce
+from sklearn.preprocessing import OneHotEncoder
 
 # function for normalizing data at once
 def normalized_data(df):
+    
+    df_cop = df.columns.str.upper()
     df_cop = df.copy()
-    target_col = "TARGET_LABEL_BAD=1"
 
     # 'PAYMENT_DAY': category = ["1 - 15", "16 - 30"]
     df_cop['PAYMENT_DAY'] = np.where(df_cop['PAYMENT_DAY'] <= 14, "1_14", "15_30")
@@ -74,7 +25,7 @@ def normalized_data(df):
     df_cop['HAS_DEPENDANTS'] =  df_cop['HAS_DEPENDANTS'].astype('bool')
 
     # "RESIDENCE_TYPE": numerical changes = {1: 'owned', 2:'mortgage', 3:'rented', 4:'family', 5:'other'}
-    imp_const_zero = SimpleImputer(missing_values=np.nan, strategy="constant", fill_value=0)
+    imp_const_zero = df_cop['RESIDENCE_TYPE'].fillna(0)
     df_cop["RESIDENCE_TYPE"] = imp_const_zero.fit_transform(df_cop[["RESIDENCE_TYPE"]]).ravel()
     # categorical changes
     # mapping = {1: "owned", 2: "mortgage", 3: "rented", 4: "family", 5: "other"}
@@ -135,21 +86,16 @@ def normalized_data(df):
     labels = ['<_18', '18_25', '26_35', '36_45', '46_60', '>_60']
     df_cop['AGE'] = pd.cut(df_cop['AGE'], bins=bins, labels=labels) 
 
-    return (df_cop, target_col)
-
-def categorical_columns(df):
-    # change columns to category, except bool columns
-    object_columns = [col for col in df.columns if df[col].dtype != 'bool']
-    df[object_columns] = df[object_columns].astype('category')
-    return df
+    return (df_cop)
 
 
+# delete columns
 def delete_columns(df):
 
     # delete columns with single values
-    num_unique_values = df.nunique()
-    columns_to_drop = num_unique_values[num_unique_values == 1].index
-    df.drop(columns=columns_to_drop, inplace=True)
+    # num_unique_values = df.nunique() # change for individual columns
+    # columns_to_drop = num_unique_values[num_unique_values == 1].index
+    # df.drop(columns=columns_to_drop, inplace=True)
 
     # delete columns according to our criteria
     drop_columns=['ID_CLIENT', # index 
@@ -189,7 +135,11 @@ def delete_columns(df):
                 'MATE_EDUCATION_LEVEL', # over 60% of empty values
                 # 'PRODUCT', delete?, 3 different values, 
                 'RESIDENCIAL_ZIP_3', # too many unique values'
-                'PROFESSIONAL_ZIP_3'] # too many unique values'
+                'PROFESSIONAL_ZIP_3', # too many unique values'
+                'TARGET_LABEL_BAD=1', # target columns
+                'CLERK_TYPE', 'QUANT_ADDITIONAL_CARDS', 'EDUCATION_LEVEL',
+                'FLAG_MOBILE_PHONE', 'FLAG_HOME_ADDRESS_DOCUMENT', 'FLAG_RG',
+                'FLAG_CPF', 'FLAG_INCOME_PROOF', 'FLAG_ACSP_RECORD'] 
     
     list_not_find = []
     list_removed = []
@@ -201,8 +151,11 @@ def delete_columns(df):
         else:
             list_not_find.append(outside_column)
 
+    return df
 
-    print("Those columns were removed: \n",list_removed)
-    print("\nThose columns were not found: \n",list_not_find)
+    
 
+def overall(df):
+    normalized_data(df)
+    delete_columns(df)
     return df
