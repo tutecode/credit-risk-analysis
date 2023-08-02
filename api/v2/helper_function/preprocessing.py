@@ -1,13 +1,15 @@
 import pandas as pd
 import numpy as np
 import category_encoders as ce
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 # function for normalizing data at once
 def normalized_data(df):
     
-    df_cop = df.columns.str.upper()
     df_cop = df.copy()
+
+    # Convert column labels to uppercase
+    df_cop.columns = df_cop.columns.str.upper()
 
     # 'PAYMENT_DAY': category = ["1 - 15", "16 - 30"]
     df_cop['PAYMENT_DAY'] = np.where(df_cop['PAYMENT_DAY'] <= 14, "1_14", "15_30")
@@ -24,9 +26,15 @@ def normalized_data(df):
     df_cop['HAS_DEPENDANTS'] = np.where(df_cop['QUANT_DEPENDANTS'] >= 1, True, False)
     df_cop['HAS_DEPENDANTS'] =  df_cop['HAS_DEPENDANTS'].astype('bool')
 
+    # CHEQUEAR ESTO
+
+
     # "RESIDENCE_TYPE": numerical changes = {1: 'owned', 2:'mortgage', 3:'rented', 4:'family', 5:'other'}
-    imp_const_zero = df_cop['RESIDENCE_TYPE'].fillna(0)
-    df_cop["RESIDENCE_TYPE"] = imp_const_zero.fit_transform(df_cop[["RESIDENCE_TYPE"]]).ravel()
+    #imp_const_zero = df_cop['RESIDENCE_TYPE'].fillna(0)
+    #df_cop["RESIDENCE_TYPE"] = imp_const_zero.fit_transform(df_cop[["RESIDENCE_TYPE"]]).ravel()
+    label_encoder = LabelEncoder()
+    df_cop["RESIDENCE_TYPE"] = label_encoder.fit_transform(df_cop["RESIDENCE_TYPE"])
+
     # categorical changes
     # mapping = {1: "owned", 2: "mortgage", 3: "rented", 4: "family", 5: "other"}
     df_cop["HAS_RESIDENCE"] = np.where(df_cop["RESIDENCE_TYPE"] == 1, True, False)
@@ -86,6 +94,8 @@ def normalized_data(df):
     labels = ['<_18', '18_25', '26_35', '36_45', '46_60', '>_60']
     df_cop['AGE'] = pd.cut(df_cop['AGE'], bins=bins, labels=labels) 
 
+    print("PREPROCESSING")
+    print(df_cop.head())
     return (df_cop)
 
 
@@ -151,11 +161,15 @@ def delete_columns(df):
         else:
             list_not_find.append(outside_column)
 
+    print("DELETE")
+    print(df.head())
+
     return df
 
     
 
 def overall(df):
-    normalized_data(df)
-    delete_columns(df)
-    return df
+    df_normal = normalized_data(df)
+    df_deleted = delete_columns(df_normal)
+    
+    return df_deleted

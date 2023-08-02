@@ -10,13 +10,6 @@ from helper_function import preprocessing, ml_model
 app = FastAPI()
 logging.basicConfig(level=logging.ERROR)
 
-# # Function to predict loan approval
-# def predict_loan_approval(input_data):
-#     # Replace this with your actual machine learning model prediction code
-#     # For demonstration purposes, we'll return a random prediction (0 or 1)
-#     import random
-#     return random.randint(0, 1)
-
 # Initialize Redis client
 redis_client = redis.StrictRedis(host='redis', port=6379, decode_responses=True)
 
