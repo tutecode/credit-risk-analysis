@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+category_encoders
+pandas
+joblib
+redis
+numpy
+scikit-learn
+python-multipart
