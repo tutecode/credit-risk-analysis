@@ -7,3 +7,6 @@ numpy
 scikit-learn
 python-multipart
 category_encoders
+jinja2
+Markdown
+termcolor

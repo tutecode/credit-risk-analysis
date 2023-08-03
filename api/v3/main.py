@@ -1,5 +1,5 @@
 # main.py
-from fastapi import FastAPI, Form, HTTPException
+from fastapi import FastAPI, Form, HTTPException, Request
 import pandas as pd
 import logging
 import joblib
@@ -7,7 +7,8 @@ import redis
 import os
 from helper_function import ml_model
 import json
-
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 # Current directory
 current_dir = os.path.dirname(__file__)
@@ -33,11 +34,22 @@ logging.getLogger().addHandler(file_handler)
 # Initialize Redis client
 redis_client = redis.StrictRedis(host="redis", port=6379, decode_responses=True)
 
-
 # Home page
 @app.get("/")
 def home():
     return {"message": "Welcome to the Loan Prediction API!"}
+
+# Load Jinja2 templates
+templates = Jinja2Templates(directory="templates")
+
+# Render the loan prediction form using Jinja2 template
+@app.get("/index/", response_class=HTMLResponse)
+async def get_loan_prediction_form(request: Request):
+    # Render the template with the necessary context
+    return templates.TemplateResponse("index.html", {"request": request})
+
+# Esto va en el index si no funciona
+# <form action="http://localhost:8000/prediction" method="post">
 
 
 # Prediction page
@@ -63,7 +75,7 @@ def predict(
     flag_banking_accounts: int = Form(...),  # Y=1
     flag_personal_assets: int = Form(...),  # Y=1
     flag_cars: int = Form(...),  # Y=1
-    APPLICATION_SUBMISSION_TYPE_Web: int = Form(...),  # Web=1
+    #APPLICATION_SUBMISSION_TYPE_Web: int = Form(...),  # Web=1
 ):
     # Load template of JSON file containing columns name
     # schema_name = "data/columns_set.json"

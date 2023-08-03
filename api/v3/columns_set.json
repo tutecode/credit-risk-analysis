@@ -1,7 +1,7 @@
 {
     "data_columns": {
         "PAYMENT_DAY_15-30": null,
-        "APPLICATION_SUBMISSION_TYPE_Web": null,
+        "APPLICATION_SUBMISSION_TYPE_Web": 1,
         "SEX_M": null,
         "MARITAL_STATUS_other": null,
         "MARITAL_STATUS_single": null,
