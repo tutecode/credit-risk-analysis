@@ -24,7 +24,8 @@ def predict_target(df):
 
         # Get the probability of class 1 (approved)
         prob_class_1 = y_prob[0][1]
-
+        prob_class_1 = round(prob_class_1,2)
+        
         # Set a threshold (e.g., 0.5) to convert probabilities to binary predictions
         if prob_class_1 > 0.5:
             prediction = 1  # Approved (class 1)
@@ -34,4 +35,4 @@ def predict_target(df):
     else:
         raise FileNotFoundError(f"The file {model_file_path} does not exist.")
 
-    return prediction
+    return prediction, prob_class_1

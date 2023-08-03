@@ -197,14 +197,14 @@ def predict(
     # Convert the JSON into data frame
     df = pd.DataFrame(data={k: [v] for k, v in schema_cols.items()}, dtype=float)
 
-    result = ml_model.predict_target(df)
-
+    result, prob = ml_model.predict_target(df)
+    
     # Determine the output message
     if int(result) == 1:
         prediction = 'Sorry Mr/Mrs/Ms {name}, your loan is rejected!'.format(name = name)
     else:
         prediction = 'Dear Mr/Mrs/Ms {name}, your loan is approved!'.format(name = name)
 
-    context = {"request": request, "result": prediction}
+    context = {"request": request, "result": prediction, "prob": prob}
     # Return the prediction{"request": request}
     return templates.TemplateResponse('prediction.html',  context)
