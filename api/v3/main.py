@@ -1,5 +1,6 @@
 # main.py
 from fastapi import FastAPI, Form, HTTPException, Request
+
 import pandas as pd
 import logging
 import joblib
@@ -9,6 +10,8 @@ from helper_function import ml_model
 import json
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from typing import Union
+from fastapi.staticfiles import StaticFiles
 
 # Current directory
 current_dir = os.path.dirname(__file__)
@@ -39,6 +42,8 @@ redis_client = redis.StrictRedis(host="redis", port=6379, decode_responses=True)
 def home():
     return {"message": "Welcome to the Loan Prediction API!"}
 
+# Load static directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
 # Load Jinja2 templates
 templates = Jinja2Templates(directory="templates")
 
@@ -55,6 +60,7 @@ async def get_loan_prediction_form(request: Request):
 # Prediction page
 @app.post("/prediction")
 def predict(
+    request: Request,
     name: str = Form(...),  # Matias
     age: str = Form(...),  # 26-35
     sex: int = Form(...),  # Male=1, Female=0
@@ -62,20 +68,20 @@ def predict(
     monthly_income_tot: str = Form(...),  # 1320-3323
     payment_day: int = Form(...),  # 0 = 1-14, 1 = 15-30
     residential_state: str = Form(...),  # AL
-    months_in_residence: str = Form(...),  # (6-12, >12)
+    months_in_residence: Union[str, None] = Form(None),  # (6-12, >12)
     product: str = Form(...),  # (2, 7)
-    flag_company: int = Form(...),  # Y=1
-    flag_dependants: int = Form(...),  # Y=1
+    flag_company:  Union[str, None] = Form(None),  # Y=1
+    flag_dependants: Union[str, None] = Form(None),  # Y=1
     quant_dependants: int = Form(...),  # (1, 2, 3)
-    flag_residencial_phone: int = Form(...),  # Y=1
-    flag_professional_phone: int = Form(...),  # Y=1
-    flag_email: int = Form(...),  # Y=1
-    flag_cards: int = Form(...),  # Y=1
-    flag_residence: int = Form(...),  # Y=1
-    flag_banking_accounts: int = Form(...),  # Y=1
-    flag_personal_assets: int = Form(...),  # Y=1
-    flag_cars: int = Form(...),  # Y=1
-    #APPLICATION_SUBMISSION_TYPE_Web: int = Form(...),  # Web=1
+    flag_residencial_phone: Union[str, None] = Form(None),  # Y=1
+    flag_professional_phone: Union[str, None] = Form(None),  # Y=1
+    flag_email: Union[str, None] = Form(None),  # Y=1
+    flag_cards: Union[str, None] = Form(None),  # Y=1
+    flag_residence: Union[str, None] = Form(None),  # Y=1
+    flag_banking_accounts: Union[str, None] = Form(None),  # Y=1
+    flag_personal_assets: Union[str, None] = Form(None),  # Y=1
+    flag_cars: Union[str, None] = Form(None),  # Y=1
+    submission_type_web: Union[str, None] = Form(None),  # Web=1
 ):
     # Load template of JSON file containing columns name
     # schema_name = "data/columns_set.json"
@@ -85,6 +91,8 @@ def predict(
     with open(schema_dir, "r") as f:
         cols = json.loads(f.read())
     schema_cols = cols["data_columns"]
+
+    
 
     # Parse the Categorical columns (Greater than one column)
     # RESIDENCIAL_STATE_ (AL, ...)
@@ -156,10 +164,24 @@ def predict(
             schema_cols[col] = 0
     except:
         pass
+    
+    flag_company = True if flag_company == "on" else False
+    flag_dependants = True if flag_dependants == "on" else False
+    flag_residencial_phone = True if flag_residencial_phone == "on" else False
+    flag_professional_phone = True if flag_professional_phone == "on" else False
+    flag_email = True if flag_email == "on" else False
+    flag_cards = True if flag_cards == "on" else False
+    flag_residence = True if flag_residence == "on" else False
+    flag_banking_accounts = True if flag_banking_accounts == "on" else False
+    flag_personal_assets = True if flag_personal_assets == "on" else False
+    flag_cars = True if flag_cars == "on" else False
+    submission_type_web = True if submission_type_web == "on" else False
+
+
 
     # Parse the Numerical columns (One column)
     schema_cols["PAYMENT_DAY_15-30"] = payment_day
-    schema_cols["APPLICATION_SUBMISSION_TYPE_Web"] = APPLICATION_SUBMISSION_TYPE_Web
+    schema_cols["APPLICATION_SUBMISSION_TYPE_Web"] = submission_type_web
     schema_cols["FLAG_RESIDENCIAL_PHONE_Y"] = flag_residencial_phone
     schema_cols["FLAG_PROFESSIONAL_PHONE_Y"] = flag_professional_phone
     schema_cols["COMPANY_Y"] = flag_company
@@ -175,11 +197,14 @@ def predict(
     # Convert the JSON into data frame
     df = pd.DataFrame(data={k: [v] for k, v in schema_cols.items()}, dtype=float)
 
-    prediction = ml_model.predict_target(df)
+    result = ml_model.predict_target(df)
 
     # Determine the output message
-    if prediction == 1:
-        output_message = f"Dear Mr/Mrs/Ms {name}, your loan is approved!"
+    if int(result) == 1:
+        prediction = 'Sorry Mr/Mrs/Ms {name}, your loan is rejected!'.format(name = name)
     else:
-        output_message = f"Sorry Mr/Mrs/Ms {name}, your loan is rejected!"
-    return {"prediction": prediction, "message": output_message}
+        prediction = 'Dear Mr/Mrs/Ms {name}, your loan is approved!'.format(name = name)
+
+    context = {"request": request, "result": prediction}
+    # Return the prediction{"request": request}
+    return templates.TemplateResponse('prediction.html',  context)

@@ -32,12 +32,6 @@
                                 <label for="name"><i class="zmdi zmdi-account material-icons-name"></i></label>
                                 <input type="text" name="name" id="name" placeholder="Your Name" required>
                             </div>
-                            <!-- Birthdate -->
-                            <div class="form-group">
-                                <label for="birthdate"><i class="zmdi zmdi-calendar"></i></label>
-                                <input type="date" name="birthdate" id="birthdate" placeholder="Your Birthdate"
-                                    required>
-                            </div>
                             <!-- AGE / CATEGORICAL -->
                             <div class="form-group">
                                 <label for="age"><i class="zmdi zmdi-home"></i></label>
@@ -59,6 +53,12 @@
                                     <option value="0">Female</option>
                                 </select>
                             </div>
+                            <!-- Birthdate -->
+                            <!-- <div class="form-group">
+                                <label for="birthdate"><i class="zmdi zmdi-calendar"></i></label>
+                                <input type="date" name="birthdate" id="birthdate" placeholder="Your Birthdate"
+                                    required>
+                            </div> -->
                             <!-- MARITAL_STATUS / CATEGORICAL -->
                             <div class="form-group">
                                 <label for="marital_status"><i class="zmdi zmdi-home"></i></label>
@@ -83,17 +83,17 @@
                             </div>
                             <!-- PAYMENT_DAY -->
                             <div class="form-group">
-                                <label for="sex"><i class="zmdi zmdi-accounts"></i></label>
-                                <select name="sex" id="sex" required>
-                                    <option value="" disabled selected>Sex</option>
+                                <label for="payment_day"><i class="zmdi zmdi-accounts"></i></label>
+                                <select name="payment_day" id="payment_day" required>
+                                    <option value="" disabled selected>payment_day</option>
                                     <option value="1">1-14</option>
                                     <option value="0">15-30</option>
                                 </select>
                             </div>
                             <!-- RESIDENCIAL_STATE / CATEGORICAL -->
                             <div class="form-group">
-                                <label for="residencial_state"><i class="zmdi zmdi-home"></i></label>
-                                <select name="residencial_state" id="residencial_state" placeholder="Residencial state"
+                                <label for="residential_state"><i class="zmdi zmdi-home"></i></label>
+                                <select name="residential_state" id="residential_state" placeholder="Residential state"
                                     required>
                                     <option value="" disabled selected>Residencial state</option>
                                     <option value="AC">AC</option>
@@ -208,8 +208,7 @@
                             <!-- flag_banking_accounts -->
                             <div class="form-group">
                                 <label for="flag_banking_accounts"><i class="zmdi zmdi-accounts"></i></label>
-                                <input type="checkbox" name="flag_banking_accounts" id="flag_banking_accounts"
-                                    value="1">
+                                <input type="checkbox" name="flag_banking_accounts" id="flag_banking_accounts" value="1">
                                 <label for="flag_banking_accounts"
                                     class="label-agree-term"><span><span></span></span>Banking accounts?</label>
                             </div>
@@ -227,15 +226,12 @@
                                 <label for="flag_cars" class="label-agree-term"><span><span></span></span>Cars?</label>
                             </div>
 
-                            <!-- FLAG_RESIDENCIAL_PHONE 
+                            <!--Application submission type-->
                             <div class="form-group">
-                                <label for="flag_residencial_phone"><i class="zmdi zmdi-accounts"></i></label>
-                                <select name="flag_residencial_phone" id="flag_residencial_phone" required>
-                                    <option value="" disabled selected>Possesses a home phone?</option>
-                                    <option value="1">Yes</option>
-                                    <option value="0">No</option>
-                                </select>
-                            </div>-->
+                                <label for="submission_type_web"><i class="zmdi zmdi-accounts"></i></label>
+                                <input type="checkbox" name="submission_type_web" id="submission_type_web" value="1">
+                                <label for="submission_type_web" class="label-agree-term"><span><span></span></span>Submission_type_web?</label>
+                            </div>
                             <!-- Terms condition / checkbox -->
                             <div class="form-group">
                                 <input type="checkbox" name="agree-term" id="agree-term" class="agree-term" required>
