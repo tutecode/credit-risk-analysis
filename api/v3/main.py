@@ -5,7 +5,7 @@ import logging
 import joblib
 import redis
 import os
-from helper_function import preprocessing, ml_model
+from helper_function import ml_model
 import json
 
 
@@ -66,7 +66,6 @@ def predict(
     APPLICATION_SUBMISSION_TYPE_Web: int = Form(...),  # Web=1
 ):
     # Load template of JSON file containing columns name
-    # Schema name
     # schema_name = "data/columns_set.json"
     schema_name = "columns_set.json"
     # Directory where the schema is stored
