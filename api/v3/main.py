@@ -13,6 +13,7 @@ import json
 current_dir = os.path.dirname(__file__)
 
 app = FastAPI()
+
 # Set up logging
 log_filename = "app_log.log"
 logging.basicConfig(
@@ -24,7 +25,9 @@ logging.basicConfig(
 )
 file_handler = logging.FileHandler(filename=log_filename)
 file_handler.setLevel(logging.INFO)
-file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+file_handler.setFormatter(
+    logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+)
 logging.getLogger().addHandler(file_handler)
 
 # Initialize Redis client
@@ -161,23 +164,11 @@ def predict(
     # Convert the JSON into data frame
     df = pd.DataFrame(data={k: [v] for k, v in schema_cols.items()}, dtype=float)
 
-    #print(df)
-    # Convert the input data dictionary into a DataFrame
-    # df = pd.DataFrame(input_data, index=[0])
-
-    # Use the trained model to make a prediction
-    # df_normalized = preprocessing.overall(df)
-    # df_encoded = ml_model.encoding(df_normalized, True)
-    # Logging the input data
-    logging.info(f"Input data received:\n{df.to_string(index=False)}")
-
-        # ... (Your existing code for data preparation)
     prediction = ml_model.predict_target(df)
-    # prediction = predict_loan_approval(df_predicted)
-    # # Determine the output message
+
+    # Determine the output message
     if prediction == 1:
         output_message = f"Dear Mr/Mrs/Ms {name}, your loan is approved!"
     else:
         output_message = f"Sorry Mr/Mrs/Ms {name}, your loan is rejected!"
     return {"prediction": prediction, "message": output_message}
-
