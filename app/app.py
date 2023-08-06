@@ -1,63 +1,25 @@
-# app.py
-from fastapi import FastAPI, Form, Request
-
-# Import the custom middleware
-from .middleware import ml_model_middleware
-
-# ... other imports ...
-
-# Your FastAPI app
-app = FastAPI()
-
-# ... other routes ...
-
-# Prediction page
-@app.post("/prediction")
-async def predict(request: Request, ...):  # Add all the form fields here
-    # Access the prediction result and probability from the request's state
-    result = request.state.prediction_result
-    prob = request.state.prediction_prob
-
-    # Determine the output message
-    if int(result) == 1:
-        prediction = "Sorry, your loan is rejected!"
-    else:
-        prediction = "Congratulations, your loan is approved!"
-
-    context = {"request": request, "result": prediction, "prob": prob}
-    return templates.TemplateResponse("prediction.html", context)
-
-# Add the custom middleware to the FastAPI app
-app.middleware("http")(ml_model_middleware)
-
-
-
-###################################################################3
-
-
-
-
-
-
-# main.py
-from fastapi import FastAPI, Form, HTTPException, Request
-
+import os
+import time
 import pandas as pd
 import logging
-import joblib
 import redis
-import os
-#from helper_function import ml_model
+import uuid
 import json
+from typing import Union
+import settings
+from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from typing import Union
 from fastapi.staticfiles import StaticFiles
 
 # Current directory
 current_dir = os.path.dirname(__file__)
 
+# Your FastAPI app
 app = FastAPI()
+
+# connect to Redis
+db = redis.StrictRedis(host=os.environ.get("REDIS_HOST"))
 
 # Set up logging
 log_filename = "app_log.log"
@@ -76,7 +38,11 @@ file_handler.setFormatter(
 logging.getLogger().addHandler(file_handler)
 
 # Initialize Redis client
-redis_client = redis.StrictRedis(host="redis", port=6379, decode_responses=True)
+# Connect to Redis and assign to variable `db``
+# Make use of settings.py module to get Redis settings like host, port, etc.
+db = redis.Redis(
+    host=settings.REDIS_IP, port=settings.REDIS_PORT, db=settings.REDIS_DB_ID
+)
 
 
 # Home page
@@ -96,11 +62,6 @@ templates = Jinja2Templates(directory="templates")
 async def get_loan_prediction_form(request: Request):
     # Render the template with the necessary context
     return templates.TemplateResponse("index.html", {"request": request})
-
-
-# Esto va en el index si no funciona
-# <form action="http://localhost:8000/prediction" method="post">
-
 
 # Prediction page
 @app.post("/prediction")
@@ -237,15 +198,53 @@ def predict(
 
     # Convert the JSON into data frame
     df = pd.DataFrame(data={k: [v] for k, v in schema_cols.items()}, dtype=float)
+    # Replace NaN values with 0.0
+    df = df.fillna(0.0)
+    # generate an id for the classification then 
+    data_message = {"id": str(uuid.uuid4()), "data": df.iloc[0].values.tolist()}
+        
+    job_data = json.dumps(data_message)
+    job_id = data_message["id"]
 
-    result, prob = ml_model.predict_target(df)
+    # Send the job to the model service using Redis
+    # Hint: Using Redis `lpush()` function should be enough to accomplish this.
+    # TODO
+    db.lpush(settings.REDIS_QUEUE, job_data)
+
+    # wait for result model
+    # Loop until we received the response from our ML model
+    while True:
+        # Attempt to get model predictions using job_id
+        # Hint: Investigate how can we get a value using a key from Redis
+        # TODO
+        output = db.get(job_id)
+
+        # Check if the text was correctly processed by our ML model
+        # Don't modify the code below, it should work as expected
+        if output is not None:
+            output = json.loads(output.decode("utf-8"))
+            model_name = output["model_name"]
+            model_score = output["model_score"]
+            prediction = output["prediction"]
+            score = output["score"]
+            
+            db.delete(job_id)
+            break
+
+        # Sleep some time waiting for model results
+        time.sleep(settings.API_SLEEP)
 
     # Determine the output message
-    if int(result) == 1:
-        prediction = "Sorry Mr/Mrs/Ms {name}, your loan is rejected!".format(name=name)
+    if int(prediction) == 1:
+        prediction = "Sorry Mr/Mrs/Ms {name}, your loan is rejected!\n with a probability of {proba}".format(name=name,proba=score)
     else:
         prediction = "Dear Mr/Mrs/Ms {name}, your loan is approved!".format(name=name)
 
-    context = {"request": request, "result": prediction, "prob": prob}
+    context = {
+        "request":request,
+        "model_name":model_name,
+        "model_score":model_score,
+        "result": prediction,
+    }
     # Return the prediction{"request": request}
     return templates.TemplateResponse("prediction.html", context)
