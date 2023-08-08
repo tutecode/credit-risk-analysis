@@ -200,9 +200,10 @@ def predict(
     df = pd.DataFrame(data={k: [v] for k, v in schema_cols.items()}, dtype=float)
     # Replace NaN values with 0.0
     df = df.fillna(0.0)
+
     # generate an id for the classification then 
     data_message = {"id": str(uuid.uuid4()), "data": df.iloc[0].values.tolist()}
-        
+    
     job_data = json.dumps(data_message)
     job_id = data_message["id"]
 

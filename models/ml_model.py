@@ -26,7 +26,7 @@ def load_model(filename):
     if os.path.exists(filename):
         with open(filename, 'rb') as f:
             model_tmp = pickle.load(f)
-            logger.info("model:",model_tmp)
+            #logger.info("model:",model_tmp)
     else:
         raise FileNotFoundError(f"The file {filename} does not exist.")
 
@@ -56,7 +56,7 @@ def predict(data):
 
     # path of model
     model_file_path = "logistic_regression.pk"
-    logger.info("despues data:",data)
+
     # Load model
     model, model_score = load_model(model_file_path)
     x = np.array(data)
@@ -67,16 +67,13 @@ def predict(data):
     
     # Convert the 1D array into a 2D array (matrix) and pass it to the model for prediction
     class_name = model.predict(x_sample)[0]
-    logger.info(f"classname: {class_name}")
     pred_probability = model.predict_proba(x_sample)[0]
-    logger.info(f"classname: {class_name}")
+
     # get idx to prob using the class 
     idx_prob = np.where(model.classes_==class_name)[0][0]
     pred_probability = pred_probability[idx_prob]
-    logger.info(f"predict_proba: {pred_probability}")
     model_name = model.__class__.__name__
     model_score = round(model_score,2)
-    logger.info("name: {}, score: {}".format(model_name,model_score))
     return model_name, model_score, class_name, pred_probability
 
 def classify_process():
@@ -105,19 +102,21 @@ def classify_process():
         # Hint: You should be able to successfully implement the communication
         #       code with Redis making use of functions `brpop()` and `set()`.
         # TODO
-        try:
-            # 1. Take a new job from Redis
-            queue_name, msg = db.brpop(settings.REDIS_QUEUE)
-            logger.info("msg: {}".format(msg))
+
+        # 1. Take a new job from Redis
+        msg = db.brpop(settings.REDIS_QUEUE,settings.SERVER_SLEEP)
+        if msg is not None:
+            
+            #logger.info("msg: {}".format(msg))
+            msg = msg[1]
             #print(f"Queue name: {queue_name}, msg: {msg}")
 
             # 2. Run ML model on the given data
             newmsg = json.loads(msg)
             # print(f"name_image: {newmsg['image_name']}")
-            logger.info("antes data:",newmsg["data"])
+            #logger.info("antes data:",newmsg["data"])
             # 2.1. only need the filename image the image object is loaded by the upload folder
             model_name, model_score, class_name, pred_probability = predict(newmsg["data"])
-            logger.info("clas_prob: {} {}".format(class_name, pred_probability))
             # 3. Store model prediction in a dict with the following shape
             res_dict = {
                 "model_name": model_name,
@@ -133,10 +132,7 @@ def classify_process():
             # Here, you can see we use `json.dumps` to
             # serialize our dict into a JSON formatted string.
             db.set(res_id, json.dumps(res_dict))
-        except:
-            raise SystemExit("ERROR: Results Not Stored")
-            
-
+        
         # Sleep for a bit
         time.sleep(settings.SERVER_SLEEP)
 if __name__ == "__main__":
