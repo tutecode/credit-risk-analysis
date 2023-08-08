@@ -8,7 +8,7 @@
 
     <!-- Font Icon -->
     <link rel="stylesheet" href="../static/fonts/material-icon/css/material-design-iconic-font.min.css">
-    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../static/images/anyoneai-logo.png">
 
     <!-- Main css -->
     <link rel="stylesheet" href="../static/css/style.css">
@@ -24,10 +24,12 @@
                     <div class="signin-image">
                         <figure><img src="../static/images/anyoneai-index.png" alt="sing up image"></figure>
                     </div>
-
                     <div class="signin-form">
                         <h2 class="form-title">Prediction</h2>
-                        <a>The loan approval is obtained using the machine learning model of <b>{{model_name}}</b>. It has the accuracy of around {{model_score}}. To obtain this model performance, we have acquired the training data from a public dataset library.</a>
+                        <a>The loan approval is obtained using the machine learning model of <b>{{model_name}}</b>. 
+                            It has an accuracy around <b>{{model_score}}</b>. To obtain this model performance, 
+                            we have acquired the training data from a S3 bucket provided by AnyoneAI.
+                        </a>
                         </br></br>
                         {{ result }}
                         </br></br>
@@ -40,8 +42,6 @@
                 </div>
             </div>
         </section>
-
     </div>
-
 </body>
 </html>

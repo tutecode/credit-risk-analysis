@@ -12,129 +12,137 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Connect to Redis and assign to variable `db``
-# Make use of settings.py module to get Redis settings like host, port, etc.
-# Connect to Redis
 db = redis.Redis(
-    host=settings.REDIS_IP, 
-    port=settings.REDIS_PORT, 
-    db=settings.REDIS_DB_ID,
-    #charset="utf-8",
-    #decode_responses=True
+    host=settings.REDIS_IP, port=settings.REDIS_PORT, db=settings.REDIS_DB_ID
 )
 
+
 def load_model(filename):
+    """
+    Load a trained machine learning model from a file.
+
+    This function loads a pickled machine learning model from a given file.
+    The model is expected to be a scikit-learn GridSearchCV object.
+
+    Parameters:
+    - filename (str): Path to the file containing the pickled model.
+
+    Returns:
+    - best_estimator (object): The best estimator (trained model) from GridSearchCV.
+    - best_score (float): The best score achieved by the model during GridSearchCV.
+    """
+    # Check if the given filename exists in the filesystem
     if os.path.exists(filename):
-        with open(filename, 'rb') as f:
+        # Open the file in binary read mode
+        with open(filename, "rb") as f:
+            # Load the pickled model object from the file
             model_tmp = pickle.load(f)
-            #logger.info("model:",model_tmp)
+            # logger.info("model:", model_tmp)
     else:
+        # If the file does not exist, raise a FileNotFoundError
         raise FileNotFoundError(f"The file {filename} does not exist.")
 
-    return model_tmp.best_estimator_,model_tmp.best_score_
+    return model_tmp.best_estimator_, model_tmp.best_score_
 
+import numpy as np
 
 def predict(data):
-    # change permission of upload folder
-    # os.chmod(settings.UPLOAD_FOLDER, 0o777)
     """
-    Load image from the corresponding folder based on the image name
-    received, then, run our ML model to get predictions.
+    Make predictions using a trained machine learning model.
 
-    Parameters
-    ----------
-    image_name : str
-        Image filename.
+    This function takes input data, loads a pre-trained model, and makes predictions
+    using the loaded model.
 
-    Returns
-    -------
-    class_name, pred_probability : tuple(str, float)
-        Model predicted class as a string and the corresponding confidence
-        score as a number.
+    Parameters:
+    - data (list or numpy.ndarray): Input data for prediction.
+
+    Returns:
+    - model_name (str): Name of the loaded machine learning model.
+    - model_score (float): Best score achieved by the loaded model during training.
+    - class_name (str): Predicted class name for the input data.
+    - pred_probability (float): Predicted probability of the predicted class.
     """
+    
+    # Initialize variables for storing prediction results
     class_name = None
     pred_probability = None
 
-    # path of model
+    # Define the path of the trained model file
     model_file_path = "logistic_regression.pk"
 
-    # Load model
+    # Load the pre-trained model and its best score
     model, model_score = load_model(model_file_path)
+
+    # Convert input data into a numpy array
     x = np.array(data)
-    logger.info(f"data is: {x}")
-    logger.info(f"Size of data is: {x.shape}")
-    # adapt to one sample
+    #logger.info(f"data is: {x}")
+    #logger.info(f"Size of data is: {x.shape}")
+
+    # Reshape the input data to match the model's expected format (one sample)
     x_sample = x.reshape(1, -1)
-    
-    # Convert the 1D array into a 2D array (matrix) and pass it to the model for prediction
+
+    # Make predictions using the loaded model
     class_name = model.predict(x_sample)[0]
     pred_probability = model.predict_proba(x_sample)[0]
 
-    # get idx to prob using the class 
-    idx_prob = np.where(model.classes_==class_name)[0][0]
+    # Get the index of the predicted class in the probability array
+    idx_prob = np.where(model.classes_ == class_name)[0][0]
     pred_probability = pred_probability[idx_prob]
+
+    # Get the name of the loaded model's class and round the model score
     model_name = model.__class__.__name__
-    model_score = round(model_score,2)
+    model_score = round(model_score, 2)
+
+    # Return the prediction results
     return model_name, model_score, class_name, pred_probability
+
+
 
 def classify_process():
     """
-    Loop indefinitely asking Redis for new jobs.
-    When a new job arrives, takes it from the Redis queue, uses the loaded ML
-    model to get predictions and stores the results back in Redis using
-    the original job ID so other services can see it was processed and access
-    the results.
+    Continuously process incoming jobs from the Redis queue.
 
-    Load image from the corresponding folder based on the image name
-    received, then, run our ML model to get predictions.
+    This function listens for incoming jobs in the Redis queue, runs the ML model on the data,
+    stores the model prediction in Redis, and then waits for the next job.
+
+    The loop runs indefinitely, continuously processing jobs from the queue.
+
+    Note: This function should be run in a separate thread or process.
+
+    Returns:
+    - None
     """
+
     while True:
-        # Inside this loop you should add the code to:
-        #   1. Take a new job from Redis
-        #   2. Run your ML model on the given data
-        #   3. Store model prediction in a dict with the following shape:
-        #      {
-        #         "prediction": str,
-        #         "score": float,
-        #      }
-        #   4. Store the results on Redis using the original job ID as the key
-        #      so the API can match the results it gets to the original job
-        #      sent
-        # Hint: You should be able to successfully implement the communication
-        #       code with Redis making use of functions `brpop()` and `set()`.
-        # TODO
+        # Take a new job from Redis
+        msg = db.brpop(settings.REDIS_QUEUE, settings.SERVER_SLEEP)
 
-        # 1. Take a new job from Redis
-        msg = db.brpop(settings.REDIS_QUEUE,settings.SERVER_SLEEP)
         if msg is not None:
-            
-            #logger.info("msg: {}".format(msg))
+            # Extract the message content from the returned tuple
             msg = msg[1]
-            #print(f"Queue name: {queue_name}, msg: {msg}")
 
-            # 2. Run ML model on the given data
+            # Run ML model on the given data
             newmsg = json.loads(msg)
-            # print(f"name_image: {newmsg['image_name']}")
-            #logger.info("antes data:",newmsg["data"])
-            # 2.1. only need the filename image the image object is loaded by the upload folder
-            model_name, model_score, class_name, pred_probability = predict(newmsg["data"])
-            # 3. Store model prediction in a dict with the following shape
+            model_name, model_score, class_name, pred_probability = predict(
+                newmsg["data"]
+            )
+
+            # Store model prediction in a dictionary
             res_dict = {
                 "model_name": model_name,
                 "model_score": model_score,
                 "prediction": str(class_name),
-                "score": round(np.float64(pred_probability),2),
+                "score": round(np.float64(pred_probability), 2),
             }
-            
-            # 4. Store the results on Redis using the original job ID as the key
-            # so the API can match the results it gets to the original job sent
+
+            # Store the results on Redis using the original job ID as the key
             res_id = newmsg["id"]
-            logger.info("res: {} {}".format(res_id, res_dict))
-            # Here, you can see we use `json.dumps` to
-            # serialize our dict into a JSON formatted string.
             db.set(res_id, json.dumps(res_dict))
-        
-        # Sleep for a bit
+
+        # Sleep for a bit before processing the next job
         time.sleep(settings.SERVER_SLEEP)
+
+
 if __name__ == "__main__":
     # Now launch process
     logger.info("Launching ML service...")

@@ -9,7 +9,7 @@
 
     <!-- Font Icon -->
     <link rel="stylesheet" href="../static/fonts/material-icon/css/material-design-iconic-font.min.css">
-    <link rel="icon" type="image/x-icon" href="../static/images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../static/images/anyoneai-logo.png">
 
     <!-- Main css -->
     <link rel="stylesheet" href="../static/css/style.css">
@@ -32,6 +32,12 @@
                                 <label for="name"><i class="zmdi zmdi-account material-icons-name"></i></label>
                                 <input type="text" name="name" id="name" placeholder="Your Name" required>
                             </div>
+                            <!-- Birthdate -->
+                            <div class="form-group">
+                                <label for="birthdate"><i class="zmdi zmdi-calendar"></i></label>
+                                <input type="date" name="birthdate" id="birthdate" placeholder="Birthdate"
+                                    required>
+                            </div>
                             <!-- AGE / CATEGORICAL -->
                             <div class="form-group">
                                 <label for="age"><i class="zmdi zmdi-home"></i></label>
@@ -53,12 +59,6 @@
                                     <option value="0">Female</option>
                                 </select>
                             </div>
-                            <!-- Birthdate -->
-                            <!-- <div class="form-group">
-                                <label for="birthdate"><i class="zmdi zmdi-calendar"></i></label>
-                                <input type="date" name="birthdate" id="birthdate" placeholder="Your Birthdate"
-                                    required>
-                            </div> -->
                             <!-- MARITAL_STATUS / CATEGORICAL -->
                             <div class="form-group">
                                 <label for="marital_status"><i class="zmdi zmdi-home"></i></label>
@@ -85,7 +85,7 @@
                             <div class="form-group">
                                 <label for="payment_day"><i class="zmdi zmdi-accounts"></i></label>
                                 <select name="payment_day" id="payment_day" required>
-                                    <option value="" disabled selected>payment_day</option>
+                                    <option value="" disabled selected>Payment day</option>
                                     <option value="1">1-14</option>
                                     <option value="0">15-30</option>
                                 </select>
@@ -96,7 +96,6 @@
                                 <select name="residential_state" id="residential_state" placeholder="Residential state"
                                     required>
                                     <option value="" disabled selected>Residencial state</option>
-                                    <option value="AC">AC</option>
                                     <option value="AL">AL</option>
                                     <option value="AM">AM</option>
                                     <option value="AP">AP</option>
@@ -148,14 +147,14 @@
                                 <label for="flag_company"><i class="zmdi zmdi-accounts"></i></label>
                                 <input type="checkbox" name="flag_company" id="flag_company" value="1">
                                 <label for="flag_company"
-                                    class="label-agree-term"><span><span></span></span>Company?</label>
+                                    class="label-agree-term"><span><span></span></span>Do you work in a company?</label>
                             </div>
                             <!-- FLAG_DEPENDANTS -->
                             <div class="form-group">
                                 <label for="flag_dependants"><i class="zmdi zmdi-accounts"></i></label>
                                 <input type="checkbox" name="flag_dependants" id="flag_dependants" value="1">
                                 <label for="flag_dependants"
-                                    class="label-agree-term"><span><span></span></span>Dependants?</label>
+                                    class="label-agree-term"><span><span></span></span>Do you have dependants?</label>
                             </div>
                             <!-- QUANT_DEPENDANTS -->
                             <div class="form-group">
@@ -174,7 +173,7 @@
                                 <input type="checkbox" name="flag_residencial_phone" id="flag_residencial_phone"
                                     value="1">
                                 <label for="flag_residencial_phone"
-                                    class="label-agree-term"><span><span></span></span>Residencial Phone?</label>
+                                    class="label-agree-term"><span><span></span></span>Do you have residencial phone?</label>
                             </div>
                             <!-- flag_professional_phone -->
                             <div class="form-group">
@@ -182,20 +181,20 @@
                                 <input type="checkbox" name="flag_professional_phone" id="flag_professional_phone"
                                     value="1">
                                 <label for="flag_professional_phone"
-                                    class="label-agree-term"><span><span></span></span>Professional Phone?</label>
+                                    class="label-agree-term"><span><span></span></span>Do you have professional phone?</label>
                             </div>
                             <!-- flag_email -->
                             <div class="form-group">
                                 <label for="flag_email"><i class="zmdi zmdi-accounts"></i></label>
                                 <input type="checkbox" name="flag_email" id="flag_email" value="1">
                                 <label for="flag_email"
-                                    class="label-agree-term"><span><span></span></span>Email?</label>
+                                    class="label-agree-term"><span><span></span></span>Do you have email?</label>
                             </div>
                             <!-- flag_cards -->
                             <div class="form-group">
                                 <label for="flag_cards"><i class="zmdi zmdi-accounts"></i></label>
                                 <input type="checkbox" name="flag_cards" id="flag_cards" value="1">
-                                <label for="flag_cards" class="label-agree-term"><span><span></span></span>Credit
+                                <label for="flag_cards" class="label-agree-term"><span><span></span></span>Do you have any credit
                                     cards?</label>
                             </div>
                             <!-- flag_residence -->
@@ -203,35 +202,34 @@
                                 <label for="flag_residence"><i class="zmdi zmdi-accounts"></i></label>
                                 <input type="checkbox" name="flag_residence" id="flag_residence" value="1">
                                 <label for="flag_residence"
-                                    class="label-agree-term"><span><span></span></span>Residence?</label>
+                                    class="label-agree-term"><span><span></span></span>Do you have residence?</label>
                             </div>
                             <!-- flag_banking_accounts -->
                             <div class="form-group">
                                 <label for="flag_banking_accounts"><i class="zmdi zmdi-accounts"></i></label>
                                 <input type="checkbox" name="flag_banking_accounts" id="flag_banking_accounts" value="1">
                                 <label for="flag_banking_accounts"
-                                    class="label-agree-term"><span><span></span></span>Banking accounts?</label>
+                                    class="label-agree-term"><span><span></span></span>Do you have banking accounts?</label>
                             </div>
                             <!-- flag_personal_assets -->
                             <div class="form-group">
                                 <label for="flag_personal_assets"><i class="zmdi zmdi-accounts"></i></label>
                                 <input type="checkbox" name="flag_personal_assets" id="flag_personal_assets" value="1">
                                 <label for="flag_personal_assets"
-                                    class="label-agree-term"><span><span></span></span>Personal assets?</label>
+                                    class="label-agree-term"><span><span></span></span>Do you have personal assets?</label>
                             </div>
                             <!-- flag_cars -->
                             <div class="form-group">
                                 <label for="flag_cars"><i class="zmdi zmdi-accounts"></i></label>
                                 <input type="checkbox" name="flag_cars" id="flag_cars" value="1">
-                                <label for="flag_cars" class="label-agree-term"><span><span></span></span>Cars?</label>
+                                <label for="flag_cars" class="label-agree-term"><span><span></span></span>Do you have cars?</label>
                             </div>
-
-                            <!--Application submission type-->
+                            <!--Application submission type
                             <div class="form-group">
                                 <label for="submission_type_web"><i class="zmdi zmdi-accounts"></i></label>
                                 <input type="checkbox" name="submission_type_web" id="submission_type_web" value="1">
                                 <label for="submission_type_web" class="label-agree-term"><span><span></span></span>Submission_type_web?</label>
-                            </div>
+                            </div>-->
                             <!-- Terms condition / checkbox -->
                             <div class="form-group">
                                 <input type="checkbox" name="agree-term" id="agree-term" class="agree-term" required>

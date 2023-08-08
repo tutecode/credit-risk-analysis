@@ -31,19 +31,18 @@ def get_performance(
         recall : float
         f1_score : float
     """
-    # TODO: Compute metrics
-    # Use sklearn.metrics.accuracy_score
+    # Use sklearn.metrics.accuracy_score
     accuracy = metrics.accuracy_score(y_test, predictions)
-    # Use sklearn.metrics.precision_score
-    precision = metrics.precision_score(y_test, predictions,pos_label=0)
-    # Use sklearn.metrics.recall_score
-    recall = metrics.recall_score(y_test, predictions,pos_label=0)
-    # Use sklearn.metrics.f1_score
-    f1_score = metrics.f1_score(y_test, predictions,pos_label=0)
-    # Use sklearn.metrics.classification_report
+    # Use sklearn.metrics.precision_score
+    precision = metrics.precision_score(y_test, predictions, pos_label=0)
+    # Use sklearn.metrics.recall_score
+    recall = metrics.recall_score(y_test, predictions, pos_label=0)
+    # Use sklearn.metrics.f1_score
+    f1_score = metrics.f1_score(y_test, predictions, pos_label=0)
+    # Use sklearn.metrics.classification_report
     report = metrics.classification_report(y_test, predictions, labels=labels)
 
-    # TODO: Get Confusion Matrix, use sklearn.metrics.confusion_matrix
+    # Get Confusion Matrix, use sklearn.metrics.confusion_matrix
     cm = metrics.confusion_matrix(y_test, predictions, labels=labels)
 
     # Convert Confusion Matrix to pandas DataFrame, don't change this code!
@@ -88,7 +87,7 @@ def plot_roc(
     tpr = dict()
     roc_auc = dict()
     class_labels = model.classes_
-    y_test = label_binarize(y_test,classes=class_labels)
+    y_test = label_binarize(y_test, classes=class_labels)
 
     prob = model.predict_proba(features)
     y_score = prob[:, prob.shape[1] - 1]
