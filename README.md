@@ -1,4 +1,4 @@
-# Final Project - Credit risk analysis
+# Final Project - Credit Risk Analysis
 
 
 ![](https://hackmd.io/_uploads/rkizSXi93.png)
