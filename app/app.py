@@ -3,12 +3,15 @@ import logging
 import os
 import time
 import uuid
+from datetime import timedelta
 from typing import Union
 
+import database
 import pandas as pd
 import redis
 import settings
-from fastapi import FastAPI, Form, HTTPException, Request
+import utils
+from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -32,16 +35,18 @@ logging.getLogger().addHandler(file_handler)
 # Current directory
 current_dir = os.path.dirname(__file__)
 
-# Your FastAPI app
-app = FastAPI()
-
-
-# Initialize Redis client
-# Connect to Redis and assign to variable "db"
-# Make use of settings.py module to get Redis settings like host, port, etc.
+# Connect to Redis
 db = redis.Redis(
     host=settings.REDIS_IP, port=settings.REDIS_PORT, db=settings.REDIS_DB_ID
 )
+
+# Your FastAPI app
+app = FastAPI()
+
+# Load static directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
+# Load Jinja2 templates
+templates = Jinja2Templates(directory="templates")
 
 
 # Home page
@@ -50,10 +55,57 @@ def home():
     return {"message": "Welcome to the Loan Prediction API!"}
 
 
-# Load static directory
-app.mount("/static", StaticFiles(directory="static"), name="static")
-# Load Jinja2 templates
-templates = Jinja2Templates(directory="templates")
+@app.get("/login")
+async def login_page(request: Request):
+    """
+    Display the login page template.
+
+    Parameters:
+    - request (Request): FastAPI request object.
+
+    Returns:
+    - TemplateResponse: The rendered login page template with the request context.
+    """
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.post("/token", response_class=HTMLResponse)
+async def login_for_access_token(
+    request: Request, username: str = Form(...), password: str = Form(...)
+):
+    """
+    Authenticate user and generate access token.
+
+    Parameters:
+    - request (Request): FastAPI request object.
+    - username (str): User's username.
+    - password (str): User's password.
+
+    Returns:
+    - HTMLResponse: Login page with error message if login fails, otherwise index.html content.
+    """
+
+    user = utils.authenticate_user(database.fake_users_db, username, password)
+
+    if not user:
+        error_message = "Incorrect username or password"
+        # Return the login page with an error message
+        return templates.TemplateResponse(
+            "login.html", {"request": request, "error_message": error_message}
+        )
+
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = utils.create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+
+    # Render the index.html page directly in the response
+    index_page_content = templates.get_template("index.html").render(request=request)
+    response = HTMLResponse(content=index_page_content)
+
+    # Set the token as a cookie
+    response.set_cookie("access_token", access_token)
+    return response
 
 
 # Render the loan prediction form using Jinja2 template

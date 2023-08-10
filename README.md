@@ -9,7 +9,7 @@ Badge [source](https://shields.io/)
 
 ## Authors
 
-- [Pedrio Del Bianco](https://github.com/pedroodb) (Tutor)
+- [Pedro Del Bianco](https://github.com/pedroodb) (Tutor)
 - [Oscar Amarilla](https://github.com/Oscar-Amarilla) (Collaborator)
 - [Yessid Rios](https://github.com/YessidR) (Collaborator)
 - [Fabian Moreno](https://github.com/FabianmorenoDS) (Collaborator)

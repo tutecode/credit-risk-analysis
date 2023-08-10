@@ -5,8 +5,10 @@ joblib
 redis
 numpy
 scikit-learn
-python-multipart
 category_encoders
 jinja2
 Markdown
 termcolor
+python-multipart
+python-jose[cryptography]
+passlib[bcrypt]
