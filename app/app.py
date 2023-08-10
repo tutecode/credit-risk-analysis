@@ -3,20 +3,18 @@ import logging
 import os
 import time
 import uuid
-from datetime import datetime, timedelta
-from typing import Annotated, Union, Optional
+from datetime import timedelta
+from typing import Union
 
+import database
 import pandas as pd
 import redis
 import settings
-from fastapi import Depends, FastAPI, Form, HTTPException, Request, status
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+import utils
+from fastapi import FastAPI, Form, Request
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from pydantic import BaseModel
 
 # Set up logging
 log_filename = "app_log.log"
@@ -34,133 +32,61 @@ file_handler.setFormatter(
 )
 logging.getLogger().addHandler(file_handler)
 
-# LOGIN
-# to get a string like this run:
-# openssl rand -hex 32
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-
-fake_users_db = {
-    "anyoneai": {
-        "username": "anyoneai",
-        "full_name": "AnyoneAI",
-        "email": "anyoneai@example.com",
-        "hashed_password": "$2b$12$Hd7A7jycpGA3iBwNmN8WnevyyiUkwYA.WTYd1lPjsAon3HydIu15a",
-        "disabled": False,
-    }
-}
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    username: Optional[str] = None
-
-
-class User(BaseModel):
-    username: str
-    email: Optional[str] = None
-    full_name: Optional[str] = None
-    disabled: Optional[bool] = None
-
-class UserInDB(User):
-    hashed_password: str
-
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
 # Current directory
 current_dir = os.path.dirname(__file__)
+
+# Connect to Redis
+db = redis.Redis(
+    host=settings.REDIS_IP, port=settings.REDIS_PORT, db=settings.REDIS_DB_ID
+)
 
 # Your FastAPI app
 app = FastAPI()
 
-######################################
-
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
+# Load static directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
+# Load Jinja2 templates
+templates = Jinja2Templates(directory="templates")
 
 
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
-
-
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
-    if not user:
-        return False
-    if not verify_password(password, user.hashed_password):
-        return False
-    return user
-
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-        token_data = TokenData(username=username)
-    except JWTError:
-        raise credentials_exception
-    user = get_user(fake_users_db, username=token_data.username)
-    if user is None:
-        raise credentials_exception
-    return user
-
-
-async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)]
-):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
-
+# Home page
+@app.get("/")
+def home():
+    return {"message": "Welcome to the Loan Prediction API!"}
 
 
 @app.get("/login")
 async def login_page(request: Request):
+    """
+    Display the login page template.
+
+    Parameters:
+    - request (Request): FastAPI request object.
+
+    Returns:
+    - TemplateResponse: The rendered login page template with the request context.
+    """
     return templates.TemplateResponse("login.html", {"request": request})
 
 
-
-@app.post("/token", response_class=HTMLResponse)  # Use HTMLResponse for the POST response
+@app.post("/token", response_class=HTMLResponse)
 async def login_for_access_token(
-    request: Request,
-    username: str = Form(...),
-    password: str = Form(...)
+    request: Request, username: str = Form(...), password: str = Form(...)
 ):
-    # Authenticate user and generate access token
-    user = authenticate_user(fake_users_db, username, password)
+    """
+    Authenticate user and generate access token.
+
+    Parameters:
+    - request (Request): FastAPI request object.
+    - username (str): User's username.
+    - password (str): User's password.
+
+    Returns:
+    - HTMLResponse: Login page with error message if login fails, otherwise index.html content.
+    """
+
+    user = utils.authenticate_user(database.fake_users_db, username, password)
+
     if not user:
         error_message = "Incorrect username or password"
         # Return the login page with an error message
@@ -168,8 +94,8 @@ async def login_for_access_token(
             "login.html", {"request": request, "error_message": error_message}
         )
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = utils.create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
 
@@ -180,56 +106,6 @@ async def login_for_access_token(
     # Set the token as a cookie
     response.set_cookie("access_token", access_token)
     return response
-
-
-
-
-
-@app.get("/users/me/", response_model=User)
-async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_active_user)]
-):
-    return current_user
-
-
-@app.get("/users/me/items/")
-async def read_own_items(
-    current_user: Annotated[User, Depends(get_current_active_user)]
-):
-    return [{"item_id": "Foo", "owner": current_user.username}]
-
-
-
-# Generate fake password
-#pwd = get_password_hash("secret")
-#print(pwd)
-
-
-
-
-######################################3
-
-
-
-
-# Initialize Redis client
-# Connect to Redis and assign to variable "db"
-# Make use of settings.py module to get Redis settings like host, port, etc.
-db = redis.Redis(
-    host=settings.REDIS_IP, port=settings.REDIS_PORT, db=settings.REDIS_DB_ID
-)
-
-
-# Home page
-@app.get("/")
-def home():
-    return {"message": "Welcome to the Loan Prediction API!"}
-
-
-# Load static directory
-app.mount("/static", StaticFiles(directory="static"), name="static")
-# Load Jinja2 templates
-templates = Jinja2Templates(directory="templates")
 
 
 # Render the loan prediction form using Jinja2 template
