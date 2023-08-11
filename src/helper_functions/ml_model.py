@@ -1,24 +1,24 @@
 import pickle
-
-import category_encoders as ce
 import pandas as pd
-from catboost import CatBoostClassifier, CatBoostRegressor
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.linear_model import Lasso, LinearRegression, LogisticRegression, Ridge
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    mean_squared_error,
-    r2_score,
-)
-from sklearn.model_selection import GridSearchCV
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
-from sklearn.neural_network import MLPRegressor
+import category_encoders as ce
 from sklearn.preprocessing import OneHotEncoder
-from sklearn.tree import DecisionTreeRegressor
-
 from helper_functions import data_utils, evaluation
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LinearRegression, RidgeClassifier, Lasso
+from sklearn.tree import DecisionTreeClassifier
+
+from sklearn.naive_bayes import GaussianNB
+from catboost import CatBoostClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, classification_report,auc,roc_curve
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPRegressor
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
+import numpy as np
 
 
 def encoding(df, get_dummies=False, target="TARGET_LABEL_BAD=1"):
@@ -70,268 +70,156 @@ def encoding(df, get_dummies=False, target="TARGET_LABEL_BAD=1"):
         return df_encoded
 
 
-def model_logistic_regression(df, save_model=False):
-    """
-    Train a logistic regression model on the given DataFrame and perform hyperparameter tuning using grid search.
+# logistic regression model
+def model_logistic_regression(df, save_model = False):
+    
+    X_train, y_train, X_test, y_test, X_val, y_val = data_utils.get_feature(df) 
+    #X_train_reshape, y_train_reshape = data_utils.resampling(X_train, y_train)
 
-    Args:
-    - df (pd.DataFrame): The input DataFrame containing the data for training and evaluation.
-    - save_model (bool, optional): If True, save the trained model to a file. Default is False.
-
-    Returns:
-    - grid_search (GridSearchCV): The trained logistic regression model with the best hyperparameters.
-    """
-
-    # Split the data into training, validation, and test sets
-    X_train, y_train, X_test, y_test, X_val, y_val = data_utils.get_feature(df)
-    X_train_reshape, y_train_reshape = data_utils.resampling(X_train, y_train)
-
-    # Define the hyperparameter grid for grid search
-    param_grid = {"C": [0.99, 0.10, 0.11, 0.111]}  # best = 0.11
-
-    # Initialize logistic regression model
-    logistic_model = LogisticRegression(
-        penalty="l2", solver="sag", multi_class="auto", max_iter=500
-    )
-
-    # Perform grid search with cross-validation
+    param_grid = {'C': [0.99, 0.10, 0.11,  0.111], "class_weight": [{0:1,1:2}]} # best = 0.11
+    logistic_model = LogisticRegression(max_iter=200)
     grid_search = GridSearchCV(logistic_model, param_grid, cv=5)
-    grid_search.fit(X_train_reshape, y_train_reshape)
-
-    # Print the best score and model score on the validation set
+    grid_search.fit(X_train, y_train)
+    
     print("Best Score for Logistic Regression: ", grid_search.best_score_)
-    print("Model score for Logistic Regression: %.3f" % grid_search.score(X_val, y_val))
+    print("model score for Logistic Regression: %.3f" % grid_search.score(X_val, y_val))
     print("\n")
-
-    # Make predictions on the test set
     y_hat = grid_search.predict(X_test)
 
-    # Evaluate the model's performance
     accuracy = evaluation.get_performance(y_hat, y_test)
-
-    # Plot the ROC curve
     evaluation.plot_roc(grid_search, y_test, X_test)
-
-    # Save the trained model to a file if requested
     if save_model:
-        filename = "logistic_regression.pk"
-        pickle.dump(grid_search, open(filename, "wb"))
+        filename = 'logistic_regression.pk'
+        pickle.dump(grid_search, open(filename, 'wb'))
+        # rf = pickle.load(open(filename, 'rb')) # to load model...
 
-    # Print the best score again before returning the model
     print("Best Score for Logistic Regression: ", grid_search.best_score_)
 
     return grid_search
 
-
+# catboost classifier model
 def model_catboost_classifier(df, save_model=False):
-    """
-    Train a CatBoost classifier model on the given DataFrame and perform hyperparameter tuning using grid search.
 
-    Args:
-    - df (pd.DataFrame): The input DataFrame containing the data for training and evaluation.
-    - save_model (bool, optional): If True, save the trained model to a file. Default is False.
-
-    Returns:
-    - grid_search (GridSearchCV): The trained CatBoost classifier model with the best hyperparameters.
-    """
-
-    # Split the data into training, validation, and test sets
-    X_train, y_train, X_test, y_test, X_val, y_val = data_utils.get_feature(df)
+    X_train, y_train, X_test, y_test, X_val, y_val = data_utils.get_feature(df) 
     X_train_reshape, y_train_reshape = data_utils.resampling(X_train, y_train)
 
-    # Define the hyperparameter grid for grid search
-    param_grid = {"learning_rate": [0.01, 0.1, 0.2], "depth": [4, 6, 8]}
-
-    # Initialize CatBoost classifier model
-    catboost_model = CatBoostClassifier(
-        iterations=500, random_seed=42, logging_level="Silent"
-    )
-
-    # Perform grid search with cross-validation
+    param_grid = {'learning_rate': [0.01, 0.1, 0.2], 'depth': [4, 6, 8]}
+    catboost_model = CatBoostClassifier(iterations=500, random_seed=42, logging_level='Silent')
     grid_search = GridSearchCV(catboost_model, param_grid, cv=5)
     grid_search.fit(X_train_reshape, y_train_reshape)
-
-    # Print the best score and model score on the validation set
+    
     print("Best Score for CatBoost Classifier: ", grid_search.best_score_)
     print("Model score for CatBoost Classifier: %.3f" % grid_search.score(X_val, y_val))
     print("\n")
-
-    # Make predictions on the test set
     y_hat = grid_search.predict(X_test)
 
-    # Evaluate the model's performance
     accuracy = evaluation.get_performance(y_hat, y_test)
-
-    # Plot the ROC curve
     evaluation.plot_roc(grid_search, y_test, X_test)
-
-    # Save the trained model to a file if requested
+    
     if save_model:
-        filename = "catboost_classifier.pk"
-        pickle.dump(grid_search, open(filename, "wb"))
+        filename = 'catboost_classifier.pk'
+        pickle.dump(grid_search, open(filename, 'wb'))
+        # catboost = pickle.load(open(filename, 'rb')) # to load model...
+    
 
-    # Print the best score again before returning the model
     print("Best Score for CatBoost Classifier: ", grid_search.best_score_)
 
     return grid_search
 
 
+# evaluate model
 def evaluate_model(model, X_train, X_test, y_train, y_test):
-    """
-    Evaluate a regression model's performance using Mean Squared Error (MSE) and R-squared (R2) metrics.
-
-    Args:
-    - model: The regression model to be evaluated.
-    - X_train (array-like or pd.DataFrame): Training features.
-    - X_test (array-like or pd.DataFrame): Testing features.
-    - y_train (array-like or pd.Series): Training target.
-    - y_test (array-like or pd.Series): Testing target.
-
-    Returns:
-    - mse (float): Mean Squared Error (MSE) between predicted and actual target values.
-    - r2 (float): R-squared (R2) coefficient indicating the model's goodness of fit.
-    """
-    # Fit the model to the training data
+    
     model.fit(X_train, y_train)
-
-    # Predict target values on the test set
     y_pred = model.predict(X_test)
 
-    # Calculate Mean Squared Error (MSE)
-    mse = mean_squared_error(y_test, y_pred)
+    # compute metrics
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred,pos_label=0,average="binary")
+    recall = recall_score(y_test, y_pred,pos_label=0,average="binary") 
+    f1 = f1_score(y_test, y_pred,pos_label=0,average="binary")
+    report = classification_report(y_test, y_pred, labels=[0, 1])
+    # Print metrics, don't change this code!
+    print("Model Performance metrics:")
+    print("-" * 30)
+    print("Accuracy:", accuracy)
+    print("Precision:", precision)
+    print("Recall:", recall)
+    print("F1 Score:", f1)
+    print("\nModel Classification report:")
+    print("-" * 30)
+    print(report)
 
-    # Calculate R-squared (R2) score
-    r2 = r2_score(y_test, y_pred)
+    prob = model.predict_proba(X_test)
+    y_score = prob[:, prob.shape[1] - 1]
+    fpr, tpr, _ = roc_curve(y_test, y_score, pos_label=0)
+    roc = auc(fpr, tpr)
+    #roc = roc_auc_score(y_test, y_pred)
 
-    return mse, r2
+    return accuracy, precision, recall, f1, roc, y_pred
 
 
-def basic_models(df):
-    """
-    Train and evaluate various basic regression models on the provided dataset.
+# basic models 
+def basic_models(df,save_model=False):
+    X_train, y_train, X_test, y_test, X_val, y_val = data_utils.get_feature(df) 
+    #X_train_reshape, y_train_reshape = data_utils.resampling(X_train, y_train)
 
-    Args:
-    - df (pd.DataFrame): DataFrame containing the dataset.
+    class_weights = {0:1,1:2}
 
-    Returns:
-    - None
-    """
-    # Create a copy of the DataFrame
-    df_cop = df.copy()
+    models = {
+        'logistic_model': LogisticRegression(C=0.1,max_iter=200,class_weight=class_weights),
+        'gnb_model': GaussianNB(),
+        'catboost_model': CatBoostClassifier(random_state=42, verbose=False,class_weights=class_weights),
+        #'ridge_model': RidgeClassifier(alpha=1.0,class_weight=class_weights),
+        'decision_tree_model': DecisionTreeClassifier(class_weight=class_weights),
+        'rf_model': RandomForestClassifier(n_estimators=100, random_state=42,class_weight=class_weights),
+    }
 
-    # Split the dataset into training, testing, and validation sets
-    X_train, y_train, X_test, y_test, X_val, y_val = data_utils.get_feature(df_cop)
-    X_train_reshape, y_train_reshape = data_utils.resampling(X_train, y_train)
+    results = []
 
-    # Linear Regression Model
-    linear_model = LinearRegression()
-    mse_linear, r2_linear = evaluate_model(
-        linear_model, X_train_reshape, X_test, y_train_reshape, y_test
-    )
+    for model_name, model in models.items():
+        model_accuracy, model_precision, model_recall, model_f1, model_roc,y_pred = evaluate_model(model, X_train, X_test, y_train, y_test)
 
-    # Logistic Regression Model
-    logistic_model = LogisticRegression(max_iter=500)
-    mse_logistic, r2_logistic = evaluate_model(
-        logistic_model, X_train_reshape, X_test, y_train_reshape, y_test
-    )
+        results.append({
+            'Model': model_name,
+            'Accuracy': model_accuracy,
+            'Precision': model_precision,
+            'Recall': model_recall,
+            'F-1': model_f1,
+            'ROC': model_roc,
+            "model_class": model,
+        })
 
-    # KNN Model (for regression problems)
-    knn_model = KNeighborsRegressor()
-    knn_model.fit(X_train_reshape, y_train_reshape)
-    y_pred_knn = knn_model.predict(X_test)
-    mse_knn, r2_knn = mean_squared_error(y_test, y_pred_knn), r2_score(
-        y_test, y_pred_knn
-    )
 
-    # Gaussian Naive Bayes
-    gnb_model = GaussianNB()
-    mse_gnb, r2_gnb = evaluate_model(
-        gnb_model, X_train_reshape, X_test, y_train_reshape, y_test
-    )
+        # Compute confusion matrix
+        cm = confusion_matrix(y_test, y_pred)
 
-    # Multi Layer Perceptron
-    mlp_model = MLPRegressor(
-        hidden_layer_sizes=(100,), activation="relu", solver="adam", random_state=42
-    )
-    mlp_model.fit(X_train_reshape, y_train_reshape)
-    y_pred_mlp = mlp_model.predict(X_test)
-    mse_mlp, r2_mlp = mean_squared_error(y_test, y_pred_mlp), r2_score(
-        y_test, y_pred_mlp
-    )
+        # Create a figure and axis
+        fig, ax = plt.subplots()
 
-    # CatBoost
-    catboost_model = CatBoostRegressor(random_state=42, verbose=False)
-    catboost_model.fit(X_train, y_train)
-    y_pred_catboost = catboost_model.predict(X_test)
-    mse_catboost, r2_catboost = mean_squared_error(y_test, y_pred_catboost), r2_score(
-        y_test, y_pred_catboost
-    )
+        # Plot the confusion matrix using seaborn
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
 
-    # Ridge Regression Model
-    ridge_model = Ridge(alpha=1.0)
-    mse_ridge, r2_ridge = evaluate_model(
-        ridge_model, X_train_reshape, X_test, y_train_reshape, y_test
-    )
+        # Customize the plot
+        classes = np.unique(y_test)
+        ax.set_xticklabels(classes, rotation=0)
+        ax.set_yticklabels(classes, rotation=0)
+        ax.set_title('Confusion Matrix '+model_name)
+        ax.set_xlabel('Predicted Label')
+        ax.set_ylabel('True Label')
 
-    # LASSO Regression Model
-    lasso_model = Lasso(alpha=1.0)
-    mse_lasso, r2_lasso = evaluate_model(
-        lasso_model, X_train_reshape, X_test, y_train_reshape, y_test
-    )
+        # Show the plot
+        plt.show()
 
-    # Decision Tree Model
-    decision_tree_model = DecisionTreeRegressor()
-    mse_dt, r2_dt = evaluate_model(
-        decision_tree_model, X_train_reshape, X_test, y_train_reshape, y_test
-    )
+    results_df = pd.DataFrame(results)
+    sorted_results = results_df.sort_values(by=["Precision"],ascending=False)
+    best_class= sorted_results.loc[0,"model_class"]
 
-    # Random Forest Classifier
-    rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
-    rf_model.fit(X_train_reshape, y_train_reshape)
-    y_pred_rf = rf_model.predict(X_test)
-    mse_rf, r2_rf = mean_squared_error(y_test, y_pred_rf), r2_score(y_test, y_pred_rf)
+    # save best_class
+    if save_model:
+        filename = '../../models/logistic_regression.pk'
+        pickle.dump(best_class, open(filename, 'wb'))
 
-    # Prepare and display the results in a DataFrame
-    results = pd.DataFrame(
-        {
-            "Model": [
-                "Linear Regression",
-                "Logistic Regression",
-                "KNeighborsRegressor",
-                "Gaussian Naive Bayes",
-                "Multi Layer Perceptron",
-                "CatBoost",
-                "Ridge Regression",
-                "LASSO Regression",
-                "Decision Tree",
-                "Random Forest",
-            ],
-            "MSE": [
-                mse_linear,
-                mse_logistic,
-                mse_knn,
-                mse_gnb,
-                mse_mlp,
-                mse_catboost,
-                mse_ridge,
-                mse_lasso,
-                mse_dt,
-                mse_rf,
-            ],
-            "R²": [
-                r2_linear,
-                r2_logistic,
-                r2_knn,
-                r2_gnb,
-                r2_mlp,
-                r2_catboost,
-                r2_ridge,
-                r2_lasso,
-                r2_dt,
-                r2_rf,
-            ],
-        }
-    )
 
-    # Display the results
-    print(results)
+
+

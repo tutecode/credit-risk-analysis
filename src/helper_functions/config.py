@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 BUCKET = "anyoneai-datasets"
 PREFIX = "credit-data-2010"
