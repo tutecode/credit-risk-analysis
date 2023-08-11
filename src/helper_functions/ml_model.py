@@ -21,7 +21,7 @@ from sklearn.metrics import confusion_matrix
 import numpy as np
 
 
-def encoding(df, get_dummies=False, target="TARGET_LABEL_BAD=1"):
+def encoding(df, get_dummies=False, with_target=False,target="TARGET_LABEL_BAD=1"):
     """
     Encode categorical features in a DataFrame using one-hot encoding or a combination of one-hot encoding and binary encoding.
 
@@ -33,8 +33,10 @@ def encoding(df, get_dummies=False, target="TARGET_LABEL_BAD=1"):
     Returns:
     - df_encoded (pd.DataFrame): The encoded DataFrame with categorical features replaced by their encoded versions.
     """
-
-    df_cop = df.drop(columns=target)
+    if(with_target):
+        df_cop = df.drop(columns=target)
+    else:
+        df_cop = df
     cols_to_encode = [col for col in df.columns if col != target]
 
     if get_dummies:
@@ -42,8 +44,11 @@ def encoding(df, get_dummies=False, target="TARGET_LABEL_BAD=1"):
         df_encoded = pd.get_dummies(
             data=df_cop, columns=cols_to_encode, drop_first=True
         )
-        df_target = pd.DataFrame(df[target]).astype("uint8")
-        df_dummy = pd.concat([df_encoded, df_target], axis=1)  # Join target to df
+        if(with_target):
+            df_target = pd.DataFrame(df[target]).astype("uint8")
+            df_dummy = pd.concat([df_encoded, df_target], axis=1)  # Join target to df
+        else:
+            df_dummy = df_encoded
         return df_dummy
 
     else:
@@ -64,8 +69,11 @@ def encoding(df, get_dummies=False, target="TARGET_LABEL_BAD=1"):
         encoded_category = ce_encoder.fit_transform(df_cop[["RESIDENCIAL_STATE"]])
 
         # Join both encoders and the target into the same dataframe
-        df_target = pd.DataFrame(df[target]).astype("int64")
-        df_encoded = pd.concat([encoded_onehot, encoded_category, df_target], axis=1)
+        if(with_target):
+            df_target = pd.DataFrame(df[target]).astype("int64")
+            df_encoded = pd.concat([encoded_onehot, encoded_category, df_target], axis=1)
+        else:
+            df_encoded = pd.concat([encoded_onehot, encoded_category],axis=1)
 
         return df_encoded
 
@@ -165,6 +173,7 @@ def basic_models(df,save_model=False):
     #X_train_reshape, y_train_reshape = data_utils.resampling(X_train, y_train)
 
     class_weights = {0:1,1:2}
+    
 
     models = {
         'logistic_model': LogisticRegression(C=0.1,max_iter=200,class_weight=class_weights),
@@ -178,8 +187,10 @@ def basic_models(df,save_model=False):
     results = []
 
     for model_name, model in models.items():
-        model_accuracy, model_precision, model_recall, model_f1, model_roc,y_pred = evaluate_model(model, X_train, X_test, y_train, y_test)
-
+        param_grid = {}
+        grid_search = GridSearchCV(model, param_grid, cv=2)
+        model_accuracy, model_precision, model_recall, model_f1, model_roc,y_pred = evaluate_model(grid_search, X_train, X_test, y_train, y_test)
+        print(grid_search.best_estimator_)
         results.append({
             'Model': model_name,
             'Accuracy': model_accuracy,
@@ -187,7 +198,7 @@ def basic_models(df,save_model=False):
             'Recall': model_recall,
             'F-1': model_f1,
             'ROC': model_roc,
-            "model_class": model,
+            "model_class": grid_search,
         })
 
 
@@ -212,13 +223,17 @@ def basic_models(df,save_model=False):
         plt.show()
 
     results_df = pd.DataFrame(results)
-    sorted_results = results_df.sort_values(by=["Precision"],ascending=False)
+    sorted_results = results_df.sort_values(by=["Precision"],ascending=False).reset_index(drop=True)
     best_class= sorted_results.loc[0,"model_class"]
-
+    best_class_name = best_class.best_estimator_.__class__.__name__
     # save best_class
     if save_model:
-        filename = '../../models/logistic_regression.pk'
+        filename = "../../models/model.pk"
         pickle.dump(best_class, open(filename, 'wb'))
+
+    print(sorted_results.iloc[:,:-1])
+    print("best model with more precision is: "+best_class.best_estimator_.__class__.__name__)
+    return best_class.best_estimator_
 
 
 

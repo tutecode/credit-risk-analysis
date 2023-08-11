@@ -314,7 +314,9 @@ def predict(
             name=name, proba=score
         )
     else:
-        prediction = "Dear Mr/Mrs/Ms {name}, your loan is approved!".format(name=name)
+        prediction = "Dear Mr/Mrs/Ms {name}, your loan is approved!\n with a probability of {proba}".format(
+            name=name, proba=score
+        )
 
     context = {
         "request": request,

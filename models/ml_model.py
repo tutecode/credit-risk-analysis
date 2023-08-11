@@ -68,7 +68,7 @@ def predict(data):
     pred_probability = None
 
     # Define the path of the trained model file
-    model_file_path = "logistic_regression.pk"
+    model_file_path = "model.pk"
 
     # Load the pre-trained model and its best score
     model, model_score = load_model(model_file_path)
