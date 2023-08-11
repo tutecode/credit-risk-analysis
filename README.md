@@ -153,3 +153,10 @@ You can analyze the state of the art and make your own research on the subject. 
 ### Arquitecture
 
 ![achitecture_proposal](README_files/architecture_proposal.png)
+
+### Testing results
+
+Inside `src/notebooks` folder are 2 additional files.
+
+1. `app_test_prediction.csv` is the prediction for the data without the target column.
+2. `testing.ipynb` is the notebook which indicates how to load and run the model to obtain the prediction for a dataset.
