@@ -1,11 +1,9 @@
-# Final Project - Credit Risk Analysis
+# CreditGuard: Machine Learning for Risk Assessment
 
 
 ![](https://hackmd.io/_uploads/rkizSXi93.png)
 
 Badge [source](https://shields.io/)
-
-# ~~Key findings: Service capable of predicting the credit scores of people based on financial transactional information.~~
 
 ## Authors
 
