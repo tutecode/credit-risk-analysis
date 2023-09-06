@@ -1,6 +1,5 @@
 # CreditGuard: Machine Learning for Risk Assessment
 
-
 ![](https://hackmd.io/_uploads/rkizSXi93.png)
 
 Badge [source](https://shields.io/)
@@ -13,7 +12,6 @@ Badge [source](https://shields.io/)
 - [Fabian Moreno](https://github.com/FabianmorenoDS) (Collaborator)
 - [Matias Gomez](https://github.com/tutecode) (Collaborator)
 - [Christian Suca](https://github.com/christian6000) (Collaborator)
-
 
 ## Table of Contents
 
@@ -28,8 +26,6 @@ Badge [source](https://shields.io/)
 **Industries:** *fintech*, *banks*, *logistics*, *delivery apps*, *insurtech*, *many others*
 
 **Technologies and Tools:** *Supervised Learning*, *Deep Learning*, *HTTP APIs (FastAPI)*, *Scikit-learn*, *Pandas*, *Numpy*, *TensorFlow*, *Docker*, *Redis*, *HTML*, *CSS*.
-
-**Difficulty level:** ⭐⭐⭐ (3/5)
 
 The fintech ecosystem has experienced rapid growth in recent years and established itself as a key actor to meet the demands and needs of financial consumers. Growth was fueled by increasing demand for financial services not provided by the traditional financial sector, and increased demand for digital financial services because of the COVID-19 pandemic. In the US, companies that have taken the lead in these industries are [Stripe](https://stripe.com/docs/radar/risk-evaluation), [Affirm](https://www.affirm.com/business/blog/alternative-underwriting), [Brex](https://www.brex.com/), [Marqeta](https://www.marqeta.com/platform/riskcontrol), among others. In the Latam region payments unit [Mercado Pago](https://www.mercadopago.com.ar/) from Mercado Libre, companies like [Nubank](https://nubank.com.br/en/), [Creditas](https://www.creditas.com/), [d-local](https://dlocal.com/), [Clip](https://clip.mx/), [Ualá](https://www.uala.com.ar/), [Clara](https://www.clara.com/), and most recent ones like [Pomelo](https://pomelo.la/en/) are growing fast and in constant need of data analysis and modeling for problems like credit risk analysis, fraud detection, customer's churn prediction or behavioral models to predict untimely payments.
 
