@@ -2,6 +2,12 @@
 
 ![](https://hackmd.io/_uploads/rkizSXi93.png)
 
+# Preview
+
+![app-login](README_files/app-login.jpeg)
+![app-index](README_files/app-index.jpeg)
+![app-predict](README_files/app-predict.jpeg)
+
 Badge [source](https://shields.io/)
 
 ## Authors
