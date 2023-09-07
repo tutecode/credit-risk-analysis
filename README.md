@@ -152,7 +152,7 @@ You can analyze the state of the art and make your own research on the subject. 
 
 ### Arquitecture
 
-![arquitecture-app](README_files/architecture-app.png)
+![arquitecture-app](README_files/arquitecture-app.png)
 
 ### Testing results
 
